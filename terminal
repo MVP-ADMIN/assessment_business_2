@@ -1,0 +1,11 @@
+npm create vite@latest assessment-business -- --template vue
+cd assessment-business
+pnpm remove @vue/tsconfig
+rm -rf node_modules
+rm pnpm-lock.yaml
+rm package-lock.json
+rm tsconfig.app.json
+pnpm install
+pnpm add element-plus @element-plus/icons-vue axios vue-router pinia @vueuse/core
+pnpm add @types/node @vitejs/plugin-vue typescript vite vue-tsc -D
+pnpm run dev 
