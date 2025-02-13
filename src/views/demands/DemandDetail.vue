@@ -124,8 +124,9 @@
         <el-card>
           <template #header>评论图片</template>
           <UploadImage 
-            v-model="detail.review_images"
+            :modelValue="detail?.review_images"
             readonly
+            multiple
           />
         </el-card>
       </el-col>
@@ -133,7 +134,7 @@
         <el-card>
           <template #header>评论视频</template>
           <UploadVideo 
-            v-model="detail.review_video"
+            :modelValue="detail?.review_video"
             readonly
           />
         </el-card>
@@ -142,7 +143,7 @@
         <el-card>
           <template #header>支付截图</template>
           <UploadImage 
-            v-model="detail.payment_screenshot"
+            :modelValue="detail?.payment_screenshot"
             readonly
           />
         </el-card>

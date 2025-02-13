@@ -8,12 +8,20 @@ const request = axios.create({
 
 request.interceptors.response.use(
   response => {
-    const res = response.data
-    if (res.code === 0) {
-      return res.data
+    if (response.config.url === '/api/options') {
+      return response.data
     }
-    ElMessage.error(res.message || '请求失败')
-    return Promise.reject(new Error(res.message || '请求失败'))
+
+    if (response.status === 201 || response.status === 200) {
+      const res = response.data
+      if (res.code === 0 || !res.code) {
+        return res.data || res
+      }
+      ElMessage.error(res.message || '请求失败')
+      return Promise.reject(new Error(res.message || '请求失败'))
+    }
+
+    return response.data
   },
   error => {
     console.error('API Error:', error)

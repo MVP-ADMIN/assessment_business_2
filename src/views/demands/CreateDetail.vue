@@ -199,6 +199,7 @@ const handleSubmit = async () => {
       remark: formData.value.remark || null
     }
     
+    console.log('Submitting data:', submitData)
     await demandApi.createDetail(submitData)
     ElMessage.success('创建成功')
     router.push(`/demands/${route.params.demandId}`)

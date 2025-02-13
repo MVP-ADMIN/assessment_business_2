@@ -3,12 +3,26 @@ import type { Demand } from '@/types/demand'
 import { ElMessage } from 'element-plus'
 import type { DemandDetail } from '@/types/detail'
 
+// 定义选项接口返回类型
+interface OptionsResponse {
+  models: Array<{ model_id: number; model_name: string }>
+  types: Array<{ type_id: number; type_name: string }>
+  platforms: Array<{ platform_id: number; platform_name: string }>
+  countries: Array<{ country_id: number; country_name: string }>
+  brands: Array<{ brand_id: number; brand_name: string }>
+  stores: Array<{ store_id: number; store_name: string }>
+  accounts: Array<{ account_id: number; account_name: string }>
+  methods: Array<{ method_id: number; method_name: string }>
+  adEntryOptions: Array<{ option_id: number; option_name: string }>
+  variantOptions: Array<{ option_id: number; option_name: string }>
+}
+
 export const getDemands = () => {
   return request.get<Demand[]>('/api/demands')
 }
 
 export const getAllOptions = () => {
-  return request.get('/api/options')
+  return request.get<OptionsResponse>('/api/options')
 }
 
 export const createDemand = (data: Partial<Demand>) => {
@@ -28,7 +42,25 @@ export const demandApi = {
   list: (params?: any) => request.get<{list: Demand[], total: number}>('/api/demands', { params }),
   
   // 创建需求
-  create: (data: Partial<Demand>) => request.post<Demand>('/api/demands', data),
+  create: (data: Partial<Demand>) => 
+    request.post<Demand>('/api/demands', {
+      ...data,
+      // 确保这些字段有值
+      model_id: data.model_id,
+      type_id: data.type_id,
+      platform_id: data.platform_id,
+      country_id: data.country_id,
+      brand_id: data.brand_id,
+      store_id: data.store_id,
+      account_id: data.account_id,
+      method_id: data.method_id,
+      // 设置默认值
+      status_id: data.status_id || 1,
+      ordered_quantity: data.ordered_quantity || 0,
+      unordered_quantity: data.unordered_quantity || 0,
+      reviewed_quantity: data.reviewed_quantity || 0,
+      unreviewed_quantity: data.unreviewed_quantity || 0
+    }),
   
   // 获取需求详情
   detail: (id: number) => request.get<Demand>(`/api/demands/${id}`),
