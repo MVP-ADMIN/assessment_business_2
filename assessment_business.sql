@@ -11,7 +11,7 @@
  Target Server Version : 50744
  File Encoding         : 65001
 
- Date: 13/02/2025 11:58:27
+ Date: 13/02/2025 15:14:53
 */
 
 SET NAMES utf8mb4;
@@ -107,7 +107,7 @@ CREATE TABLE `change_logs`  (
   CONSTRAINT `change_logs_ibfk_1` FOREIGN KEY (`demand_id`) REFERENCES `demands` (`demand_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `change_logs_ibfk_2` FOREIGN KEY (`old_status_id`) REFERENCES `demand_status` (`status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `change_logs_ibfk_3` FOREIGN KEY (`new_status_id`) REFERENCES `demand_status` (`status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of change_logs
@@ -120,6 +120,8 @@ INSERT INTO `change_logs` VALUES (5, 1, '2025-02-12 12:31:54', '暂停原因: 1'
 INSERT INTO `change_logs` VALUES (6, 1, '2025-02-12 13:16:35', '继续执行原因: 继续', 2, 1);
 INSERT INTO `change_logs` VALUES (7, 2, '2025-02-12 13:45:06', '暂停原因: 1', 1, 2);
 INSERT INTO `change_logs` VALUES (8, 2, '2025-02-12 15:06:49', '继续执行原因: 010', 2, 1);
+INSERT INTO `change_logs` VALUES (9, 2, '2025-02-13 15:09:21', '暂停原因: 1', 1, 2);
+INSERT INTO `change_logs` VALUES (10, 2, '2025-02-13 15:09:26', '继续执行原因: 11', 2, 1);
 
 -- ----------------------------
 -- Table structure for countries
@@ -165,18 +167,19 @@ CREATE TABLE `demand_details`  (
   PRIMARY KEY (`detail_id`) USING BTREE,
   INDEX `demand_id`(`demand_id`) USING BTREE,
   CONSTRAINT `demand_details_ibfk_1` FOREIGN KEY (`demand_id`) REFERENCES `demands` (`demand_id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of demand_details
 -- ----------------------------
 INSERT INTO `demand_details` VALUES (1, 1, '213123', 0.40, '2025-01-08 00:00:00', '123123', NULL, '', '', '/uploads/1035a3bc-662c-4ff7-b1ba-6032ea2e6865_empty.png', '/uploads/0e102214-88a3-4d4b-998a-613e67e84ba7_O1CN01d4KBlI22wmV8bl7qW__2263287185-2-1-1-1-1-1.jpg', '/uploads/b93f918c-8ea9-4347-9a5e-9f8d8db1dd25_O1CN01d4KBlI22wmV8bl7qW__2263287185-2-1-1-1-1-1.jpg', 1, '', '2025-02-12 11:23:04', '2025-02-12 11:23:04');
-INSERT INTO `demand_details` VALUES (2, 1, '123123123123', 0.40, '2025-02-13 00:00:00', '213123123', NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, '2025-02-12 11:28:00', '2025-02-12 11:28:00');
+INSERT INTO `demand_details` VALUES (2, 1, '123123123123', 0.40, '2025-02-13 00:00:00', '213123123', NULL, '', NULL, NULL, NULL, NULL, 1, NULL, '2025-02-12 11:28:00', '2025-02-13 14:54:02');
 INSERT INTO `demand_details` VALUES (3, 2, '1231231231', 111.00, '2025-02-12 06:09:13', '', '2025-02-12 06:09:14', '', '/uploads/78738eb1-0bee-437c-99e8-9dff4d9ada71_APC244.mp4', '/uploads/1c82a8e1-2a82-473f-8c76-ee5513128ab4_fe2a03ef-9123-4d65-b131-b31a1373da69.png', '/uploads/1b8b681f-75dd-43b9-864b-0968db333f1d_c3d5e180-9123-4474-92ac-e9ec0e23ebc2.png', '/uploads/741062d4-6bbd-4cd7-9ec3-bc66314fbe27_Untitled_1.png', 2, NULL, '2025-02-12 14:10:44', '2025-02-12 15:04:57');
 INSERT INTO `demand_details` VALUES (4, 2, '123123123111', 1111.00, '2025-02-11 22:44:44', '1231231111', '2025-02-11 22:44:46', '', '/uploads/5159b173-8912-43dc-86d7-d4319b962d54_APC379.mp4', '/uploads/6bb3ec2d-da95-40c8-aaf2-1e16239cd59b_c3d5e180-9123-4474-92ac-e9ec0e23ebc2.png', '/uploads/bc875cdd-d95c-4881-904c-d9c97a5cb550_Modern-Leather-Led-Chandelier-Dimmable-Dining-Room-Living-Room-Bedroom-Hall-Chandelier-Home-Decoration-Lighting-Fixture-4-1.jpg', '/uploads/98d0adfc-ed2d-46b5-9936-3a832b180d05_Untitled.png', 2, '2131231', '2025-02-12 14:47:07', '2025-02-12 18:02:44');
 INSERT INTO `demand_details` VALUES (5, 1, '1100123123', 1100.00, '2025-02-13 09:33:42', '', NULL, NULL, NULL, '/uploads/20250213093353_L-mpara-de-pared-de-cobre-para-decoraci-n-del-hogar-candelabro-de-lujo-creativo-para.jpg', '/uploads/20250213093348_Chinoiserie-Knob-Rattan-Pendant-Light-Creative-Vintage-Design-Lamps-for-Living-Room-Sofa-Kitchen-Table-Decoration-3-1-1-1-1-1.webp', NULL, 1, NULL, '2025-02-13 09:33:55', '2025-02-13 09:33:55');
 INSERT INTO `demand_details` VALUES (6, 2, '11000', 1100.00, '2025-02-13 11:14:34', '', NULL, NULL, NULL, '/uploads/20250213111446_FC3EEFA6-14D8-4afb-B862-328CF5694D76.png', '/uploads/20250213111437_4A25F286-7F0E-4589-B214-AA996E97ABF7.png', NULL, 2, NULL, '2025-02-13 11:14:50', '2025-02-13 11:14:50');
 INSERT INTO `demand_details` VALUES (7, 2, '123123100010', 11000.00, '2025-02-13 11:17:53', '', NULL, NULL, NULL, '/uploads/20250213111810_c3d5e180-9123-4474-92ac-e9ec0e23ebc2.png', '/uploads/20250213111756_4A25F286-7F0E-4589-B214-AA996E97ABF7.png', NULL, 2, NULL, '2025-02-13 11:18:23', '2025-02-13 11:18:23');
+INSERT INTO `demand_details` VALUES (8, 3, '123123123123', 1111.00, '2025-02-13 15:00:29', '', NULL, NULL, NULL, '/uploads/20250213150039_fe2a03ef-9123-4d65-b131-b31a1373da69.png', '/uploads/20250213150033_FC3EEFA6-14D8-4afb-B862-328CF5694D76.png', NULL, 3, NULL, '2025-02-13 15:00:43', '2025-02-13 15:00:43');
 
 -- ----------------------------
 -- Table structure for demand_images
@@ -334,7 +337,7 @@ CREATE TABLE `demands`  (
 -- Records of demands
 -- ----------------------------
 INSERT INTO `demands` VALUES (1, '1231231231', '23123123', '123123', 123123, 123123, 123123, 123, 123123, 12312, 23123, 123213, 21312, 312312, 3123123, '2024-02-02 22:22:00', '2025-02-02 22:22:00', 222.00, '12312', '12312', '3123', '12312', '3123', '12312', '3123123', '11231', 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, '2025-02-12 13:16:35');
-INSERT INTO `demands` VALUES (2, '1341564641', '13156161', '1615561', 111, 11, 111, 11, 0, 0, 0, 0, 0, 0, 0, '2025-02-12 00:00:00', '2025-02-12 00:00:00', NULL, '', 'https://1231.com', '', '', '', '', '', '1231', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, '2025-02-12 15:06:49');
+INSERT INTO `demands` VALUES (2, '1341564641', '13156161', '1615561', 111, 11, 111, 11, 0, 0, 0, 0, 0, 0, 0, '2025-02-12 00:00:00', '2025-02-12 00:00:00', NULL, '', 'https://1231.com', '', '', '', '', '', '1231', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, '2025-02-13 15:09:26');
 INSERT INTO `demands` VALUES (3, '16160561606', '1561351', '156165165', 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 2, 1, 1, 1, 3, 1, 2, 2, 2, 2, 2, '2025-02-13 11:49:50');
 
 -- ----------------------------

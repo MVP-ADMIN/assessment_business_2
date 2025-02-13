@@ -37,6 +37,24 @@ export const deleteDemand = (id: number) => {
   return request.delete(`/api/demands/${id}`)
 }
 
+// 修改 getHistory 接口的返回类型定义
+interface HistoryRecord {
+  log_id: number
+  demand_id: number
+  change_time: string
+  change_description: string
+  old_status_id: number
+  new_status_id: number
+  old_status_name: string
+  new_status_name: string
+}
+
+interface ApiResponse<T> {
+  code: number
+  message: string
+  data: T
+}
+
 export const demandApi = {
   // 获取需求列表
   list: (params?: any) => request.get<{list: Demand[], total: number}>('/api/demands', { params }),
@@ -63,11 +81,10 @@ export const demandApi = {
     }),
   
   // 获取需求详情
-  detail: (id: number) => request.get<Demand>(`/api/demands/${id}`),
+  detail: (id: number) => request.get<ApiResponse<any>>(`/api/demands/${id}`),
   
   // 更新需求
-  update: (id: number, data: Partial<Demand>) => 
-    request.put<Demand>(`/api/demands/${id}`, data),
+  update: (id: number, data: any) => request.put<ApiResponse<any>>(`/api/demands/${id}`, data),
   
   // 删除需求
   delete: (id: number) => request.delete(`/api/demands/${id}`),
@@ -77,10 +94,16 @@ export const demandApi = {
     request.put<Demand>(`/api/demands/${id}/status`, { status }),
   
   // 暂停需求
-  pause: (id: number) => request.put<Demand>(`/api/demands/${id}/pause`),
+  pause: (id: number, data: { reason: string }) => 
+    request.post<Demand>(`/api/demands/${id}/pause`, data),
   
   // 恢复需求
-  resume: (id: number) => request.put<Demand>(`/api/demands/${id}/resume`),
+  resume: (id: number, data: { reason: string }) => 
+    request.post<Demand>(`/api/demands/${id}/resume`, data),
+  
+  // 终止需求
+  stop: (id: number, data: { reason: string }) => 
+    request.post<Demand>(`/api/demands/${id}/stop`, data),
   
   // 获取需求统计数据
   stats: () => request.get('/api/demands/stats'),
@@ -111,5 +134,17 @@ export const demandApi = {
   
   // 更新测评明细状态
   updateDetailStatus: (detailId: number, status: number) =>
-    request.put<DemandDetail>(`/api/demand-details/${detailId}/status`, { status })
+    request.put<DemandDetail>(`/api/demand-details/${detailId}/status`, { status }),
+  
+  // 获取状态变更历史
+  getHistory: (id: number) => 
+    request.get<ApiResponse<HistoryRecord[]>>(`/api/demands/${id}/history`),
+
+  // 获取所有选项数据
+  getOptions: () => request.get<ApiResponse<{
+    brands: Array<{ brand_id: number; brand_name: string }>;
+    stores: Array<{ store_id: number; store_name: string }>;
+    accounts: Array<{ account_id: number; account_name: string }>;
+    methods: Array<{ method_id: number; method_name: string }>;
+  }>>('/api/options'),
 } 

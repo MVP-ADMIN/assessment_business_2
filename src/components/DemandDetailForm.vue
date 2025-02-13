@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
@@ -203,6 +203,19 @@ onMounted(() => {
       ...props.initialData
     }
   }
+})
+
+// 监听表单数据变化
+watch(
+  () => formData.value,
+  (val) => {
+    // 这里可以根据需要添加更多的监听逻辑
+  },
+  { deep: true }
+)
+
+defineExpose({
+  validate: () => formRef.value?.validate()
 })
 </script>
 

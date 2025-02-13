@@ -8,12 +8,23 @@ const request = axios.create({
 
 request.interceptors.response.use(
   response => {
+    const res = response.data
+
+    // 处理特殊的历史记录接口
+    if (response.config.url?.includes('/history')) {
+      if (res.code === 0) {
+        return res
+      }
+      ElMessage.error(res.message || '请求失败')
+      return Promise.reject(new Error(res.message || '请求失败'))
+    }
+
+    // 处理其他接口
     if (response.config.url === '/api/options') {
-      return response.data
+      return res
     }
 
     if (response.status === 201 || response.status === 200) {
-      const res = response.data
       if (res.code === 0 || !res.code) {
         return res.data || res
       }
@@ -21,7 +32,7 @@ request.interceptors.response.use(
       return Promise.reject(new Error(res.message || '请求失败'))
     }
 
-    return response.data
+    return res
   },
   error => {
     console.error('API Error:', error)
