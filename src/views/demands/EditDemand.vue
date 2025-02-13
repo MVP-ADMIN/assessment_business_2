@@ -18,57 +18,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import axios from 'axios'
-import DemandForm from '../../components/DemandForm.vue'
+import DemandForm from '@/components/DemandForm.vue'
+import { demandApi } from '@/api/demand'
 
 const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
-const demandId = computed(() => route.params.id)
 const formData = ref<any>(null)
 
-// 加载需求数据
 const loadDemand = async () => {
-  if (!demandId.value) {
-    ElMessage.error('需求ID不存在')
-    return
-  }
-
   try {
     loading.value = true
-    const { data: response } = await axios.get(`/api/demands/${demandId.value}`)
-    if (response.code === 0) {
-      formData.value = response.data
-    } else {
-      ElMessage.error(response.message || '获取需求详情失败')
-    }
+    const data = await demandApi.detail(Number(route.params.id))
+    formData.value = data
   } catch (error) {
     console.error('Failed to load demand:', error)
-    ElMessage.error('获取需求详情失败')
+    ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
   }
 }
 
-// 提交表单
 const handleSubmit = async (data: any) => {
-  if (!demandId.value) {
-    ElMessage.error('需求ID不存在')
-    return
-  }
-
   try {
     loading.value = true
-    const { data: response } = await axios.put(`/api/demands/${demandId.value}`, data)
-    if (response.code === 0) {
-      ElMessage.success('保存成功')
-      router.push('/demands')
-    } else {
-      ElMessage.error(response.message || '保存失败')
-    }
+    await demandApi.update(Number(route.params.id), data)
+    ElMessage.success('保存成功')
+    router.push('/demands')
   } catch (error) {
     console.error('Failed to update demand:', error)
     ElMessage.error('保存失败')

@@ -1,9 +1,12 @@
 <template>
-  <el-tag :type="type" :effect="effect">{{ text }}</el-tag>
+  <el-tag :type="type" :effect="effect">
+    {{ text }}
+  </el-tag>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { DetailStatus } from '@/types/detail'
 
 const props = defineProps<{
   status: number
@@ -11,19 +14,21 @@ const props = defineProps<{
 }>()
 
 const type = computed(() => {
-  const types: Record<number, '' | 'warning' | 'success'> = {
-    1: '',        // 待评论
-    2: 'warning', // 已评论
-    3: 'success'  // 已完成
+  const types: Record<number, '' | 'success' | 'warning' | 'danger'> = {
+    [DetailStatus.PENDING]: '',        // 待处理
+    [DetailStatus.ORDERED]: 'warning', // 已下单
+    [DetailStatus.REVIEWED]: 'success',// 已评价
+    [DetailStatus.CANCELLED]: 'danger' // 已取消
   }
   return types[props.status] || ''
 })
 
 const text = computed(() => {
   const texts: Record<number, string> = {
-    1: '待评论',
-    2: '已评论',
-    3: '已完成'
+    [DetailStatus.PENDING]: '待处理',
+    [DetailStatus.ORDERED]: '已下单',
+    [DetailStatus.REVIEWED]: '已评价',
+    [DetailStatus.CANCELLED]: '已取消'
   }
   return texts[props.status] || '未知'
 })

@@ -1,68 +1,86 @@
 <template>
-  <div class="upload-image">
+  <div class="image-upload">
     <el-upload
-      class="image-uploader"
+      v-if="!readonly"
+      v-model:file-list="fileList"
+      class="upload-demo"
       :action="`${baseUrl}/api/upload/image`"
       :headers="headers"
-      name="file"
-      :show-file-list="false"
-      :before-upload="beforeUpload"
+      :before-upload="handleBeforeUpload"
       :on-success="handleSuccess"
       :on-error="handleError"
-      accept="image/*"
+      :on-remove="handleRemove"
+      :limit="limit"
+      :multiple="multiple"
+      list-type="picture"
+      name="file"
     >
-      <div class="upload-content">
-        <img v-if="modelValue" :src="getImageUrl(modelValue)" class="preview-image" />
-        <div v-else class="upload-placeholder">
-          <el-icon class="upload-icon"><Plus /></el-icon>
-          <div class="upload-text">点击上传</div>
+      <template #trigger>
+        <el-button type="primary">选择图片</el-button>
+      </template>
+      <template #tip>
+        <div class="el-upload__tip">
+          只能上传 jpg/png 文件，且不超过 5MB
         </div>
-      </div>
+      </template>
     </el-upload>
+    
+    <!-- 只读模式下的预览 -->
+    <div v-else class="preview-list">
+      <template v-if="multiple">
+        <el-image
+          v-for="(url, index) in modelValue"
+          :key="index"
+          :src="getImageUrl(url)"
+          :preview-src-list="Array.isArray(modelValue) ? modelValue.map(getImageUrl) : []"
+          fit="cover"
+          class="preview-image"
+        />
+      </template>
+      <el-image
+        v-else
+        :src="getImageUrl(modelValue as string)"
+        fit="cover"
+        class="preview-image"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Upload, Plus } from '@element-plus/icons-vue'
+import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import type { UploadProps } from 'element-plus'
+import type { UploadProps, UploadUserFile } from 'element-plus'
 
-const props = withDefaults(defineProps<{
-  buttonText?: string
-  limit?: number
+const props = defineProps<{
+  modelValue?: string | string[]
+  readonly?: boolean
   multiple?: boolean
-  listType?: 'text' | 'picture' | 'picture-card'
-  showFileList?: boolean
-  modelValue?: string
-}>(), {
-  buttonText: '上传图片',
-  limit: 1,
-  multiple: false,
-  listType: 'text',
-  showFileList: true,
-  modelValue: ''
-})
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-  (e: 'success', url: string): void
-  (e: 'error', error: any): void
+  limit?: number
 }>()
 
-const baseUrl = import.meta.env.VITE_API_URL
+const emit = defineEmits<{
+  'update:modelValue': [value: string | string[]]
+  'success': [url: string]
+  'error': [error: any]
+}>()
+
+const baseUrl = import.meta.env.VITE_API_URL || ''
 const headers = {
   Authorization: `Bearer ${localStorage.getItem('token')}`
 }
 
-const beforeUpload: UploadProps['beforeUpload'] = (file) => {
+const fileList = ref<UploadUserFile[]>([])
+
+const handleBeforeUpload: UploadProps['beforeUpload'] = (file) => {
   const isImage = file.type.startsWith('image/')
   if (!isImage) {
     ElMessage.error('只能上传图片文件!')
     return false
   }
-  const isLt2M = file.size / 1024 / 1024 < 2
-  if (!isLt2M) {
-    ElMessage.error('图片大小不能超过 2MB!')
+  const isLt5M = file.size / 1024 / 1024 < 5
+  if (!isLt5M) {
+    ElMessage.error('图片大小不能超过 5MB!')
     return false
   }
   return true
@@ -71,7 +89,12 @@ const beforeUpload: UploadProps['beforeUpload'] = (file) => {
 const handleSuccess: UploadProps['onSuccess'] = (response) => {
   if (response.code === 0) {
     const url = response.data.url
-    emit('update:modelValue', url)
+    if (props.multiple) {
+      const newValue = Array.isArray(props.modelValue) ? [...props.modelValue, url] : [url]
+      emit('update:modelValue', newValue)
+    } else {
+      emit('update:modelValue', url)
+    }
     emit('success', url)
     ElMessage.success('上传成功')
   } else {
@@ -85,6 +108,17 @@ const handleError: UploadProps['onError'] = (error) => {
   ElMessage.error('上传失败')
 }
 
+const handleRemove: UploadProps['onRemove'] = (file) => {
+  if (props.multiple && Array.isArray(props.modelValue)) {
+    const index = fileList.value.indexOf(file)
+    const newValue = [...props.modelValue]
+    newValue.splice(index, 1)
+    emit('update:modelValue', newValue)
+  } else {
+    emit('update:modelValue', '')
+  }
+}
+
 const getImageUrl = (url: string) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
@@ -93,57 +127,28 @@ const getImageUrl = (url: string) => {
 </script>
 
 <style scoped>
-.upload-image {
-  width: 178px;
-  height: 178px;
-  border: 1px dashed var(--el-border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: var(--el-transition-duration);
-}
-
-.upload-image:hover {
-  border-color: var(--el-color-primary);
-}
-
-.upload-content {
-  width: 100%;
-  height: 100%;
+.preview-list {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .preview-image {
-  width: 100%;
-  height: 100%;
+  width: 100px;
+  height: 100px;
+  border-radius: 4px;
   object-fit: cover;
 }
 
-.upload-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
+:deep(.el-upload-list) {
+  margin-top: 10px;
 }
 
-.upload-icon {
-  font-size: 28px;
-  color: #8c939d;
+:deep(.el-upload-list__item) {
+  transition: all 0.3s;
 }
 
-.upload-text {
-  color: #8c939d;
-  font-size: 12px;
-  margin-top: 8px;
-}
-
-:deep(.el-upload) {
-  width: 100%;
-  height: 100%;
+:deep(.el-upload-list__item:hover) {
+  transform: translateY(-2px);
 }
 </style> 

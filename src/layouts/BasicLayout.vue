@@ -63,7 +63,7 @@ const activeMenu = computed(() => route.path)
   padding: 20px;
 }
 
-:deep(.el-menu) {
+.el-menu {
   border-right: none;
 }
 </style> 

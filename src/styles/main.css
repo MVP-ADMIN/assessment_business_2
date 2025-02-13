@@ -7,6 +7,7 @@
   --el-color-info: #909399;
 }
 
+/* 基础样式 */
 html, body {
   margin: 0;
   padding: 0;
@@ -44,6 +45,30 @@ html, body {
 }
 
 /* Element Plus 样式覆盖 */
+.el-container {
+  height: 100%;
+}
+
+.el-aside {
+  background-color: #304156;
+}
+
+.el-header {
+  background-color: #fff;
+  border-bottom: 1px solid #dcdfe6;
+  padding: 0 20px;
+  line-height: 60px;
+}
+
+.el-main {
+  background-color: #f0f2f5;
+  padding: 20px;
+}
+
+.el-menu {
+  border-right: none;
+}
+
 .el-card {
   --el-card-padding: 16px;
   margin-bottom: 16px;

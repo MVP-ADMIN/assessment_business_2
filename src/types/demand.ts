@@ -19,6 +19,8 @@ export interface Demand {
   unreviewed_quantity: number
   registration_date: string
   first_order_date: string
+  created_at: string
+  updated_at: string
 }
 
 export interface DemandForm {
@@ -148,3 +150,11 @@ export interface PaymentStatus {
   status_id: number
   status_name: string
 } 
+
+export const DemandStatus = {
+  PENDING: 1,    // 待处理
+  PROCESSING: 2, // 进行中
+  PAUSED: 3,     // 已暂停
+  COMPLETED: 4,  // 已完成
+  CANCELLED: 5   // 已取消
+} as const 

@@ -55,6 +55,24 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="操作" width="200">
+          <template #default="{ row }">
+            <el-button 
+              link 
+              type="primary" 
+              @click="handleView(row)"
+            >
+              查看
+            </el-button>
+            <el-button 
+              link 
+              type="danger" 
+              @click="handleDelete(row.id)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
 
       <div v-if="!loading && tableData.length === 0" class="empty-data">
@@ -67,8 +85,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from '@/utils/axios'
+import { refundApi } from '@/api/refund'
 
 interface RefundRecord {
   id: number
@@ -141,6 +160,26 @@ const loadData = async () => {
     ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
+  }
+}
+
+const handleView = (row: any) => {
+  router.push(`/refunds/${row.id}`)
+}
+
+const handleDelete = async (id: number) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这条返款记录吗？', '提示', {
+      type: 'warning'
+    })
+    await refundApi.delete(id)
+    ElMessage.success('删除成功')
+    loadData()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Failed to delete refund:', error)
+      ElMessage.error('删除失败')
+    }
   }
 }
 

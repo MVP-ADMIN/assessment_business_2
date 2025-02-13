@@ -222,7 +222,7 @@ def upload_multiple_images():
 
 # API 路由
 @app.route('/api/demands', methods=['GET'])
-def get_demands():
+def list_demands():
     try:
         keyword = request.args.get('keyword', '')
         status = request.args.get('status')
@@ -316,10 +316,8 @@ def get_demands():
             'code': 0,
             'message': 'success',
             'data': {
-                'items': rows,
-                'total': total,
-                'page': page,
-                'size': size
+                'list': rows,
+                'total': total
             }
         })
 
@@ -1536,7 +1534,7 @@ def create_demand_detail():
         conn.close()
         
         return jsonify({
-            'code': 0,
+            'code': 0,  # 确保成功时返回 code: 0
             'message': 'Detail created successfully',
             'data': result
         })
@@ -1872,53 +1870,48 @@ def import_demands():
 
 # 单个图片上传路由
 @app.route('/api/upload/image', methods=['POST'])
-def upload_single_image():
+def upload_image():
     try:
         if 'file' not in request.files:
             return jsonify({
                 'code': 1,
                 'message': 'No file part'
             }), 400
-
+            
         file = request.files['file']
         if file.filename == '':
             return jsonify({
                 'code': 1,
                 'message': 'No selected file'
             }), 400
-
+            
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            unique_filename = f"{uuid.uuid4()}_{filename}"
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-
-            # 保存并处理图片
+            # 生成唯一文件名
+            unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
+            file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
             file.save(file_path)
-            with Image.open(file_path) as img:
-                if max(img.size) > 1920:
-                    img.thumbnail((1920, 1920))
-                img.save(file_path, optimize=True, quality=85)
-
+            
             return jsonify({
                 'code': 0,
-                'message': 'Upload successful',
+                'message': 'success',
                 'data': {
-                    'url': f'/uploads/{unique_filename}',
-                    'name': filename
+                    'url': f'/uploads/{unique_filename}'
                 }
             })
-        else:
-            return jsonify({
-                'code': 1,
-                'message': 'Invalid file type'
-            }), 400
-
+            
     except Exception as error:
-        print('Error uploading image:', str(error))
+        print('Error uploading file:', str(error))
         return jsonify({
             'code': 1,
             'message': str(error)
         }), 500
+
+# 添加静态文件路由
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
 # 批量修改状态
 @app.route('/api/demands/batch/status', methods=['PUT'])
 def batch_update_status():
@@ -2646,4 +2639,62 @@ if __name__ == '__main__':
     except Exception as error:
         print('Server startup failed:', str(error))
         exit(1) 
+
+@app.route('/api/demands/<int:id>/pause', methods=['PUT'])
+def pause_demand(id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 更新需求状态为暂停
+        cursor.execute("""
+            UPDATE demands 
+            SET status_id = 3 
+            WHERE demand_id = %s
+        """, (id,))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'code': 0,
+            'message': 'success'
+        })
+        
+    except Exception as error:
+        print('Error pausing demand:', str(error))
+        return jsonify({
+            'code': 1,
+            'message': str(error)
+        }), 500
+
+@app.route('/api/demands/<int:id>/resume', methods=['PUT'])
+def resume_demand(id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 更新需求状态为进行中
+        cursor.execute("""
+            UPDATE demands 
+            SET status_id = 2 
+            WHERE demand_id = %s
+        """, (id,))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'code': 0,
+            'message': 'success'
+        })
+        
+    except Exception as error:
+        print('Error resuming demand:', str(error))
+        return jsonify({
+            'code': 1,
+            'message': str(error)
+        }), 500
 

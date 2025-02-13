@@ -9,6 +9,13 @@ export default defineConfig({
       '@': resolve(__dirname, 'src')
     }
   },
+  css: {
+    preprocessorOptions: {
+      css: {
+        charset: false
+      }
+    }
+  },
   server: {
     port: 5173,
     proxy: {
@@ -17,5 +24,6 @@ export default defineConfig({
         changeOrigin: true
       }
     }
-  }
+  },
+  base: '/'
 }) 

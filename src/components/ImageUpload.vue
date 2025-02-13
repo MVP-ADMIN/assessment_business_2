@@ -1,5 +1,5 @@
 <template>
-  <div class="batch-image-upload">
+  <div class="image-upload">
     <el-upload
       v-model:file-list="fileList"
       class="upload-demo"
@@ -8,8 +8,7 @@
       :on-success="handleSuccess"
       :on-error="handleError"
       :on-remove="handleRemove"
-      :limit="limit"
-      multiple
+      :limit="1"
       list-type="picture"
     >
       <template #trigger>
@@ -30,24 +29,23 @@ import { ElMessage } from 'element-plus'
 import type { UploadProps, UploadUserFile } from 'element-plus'
 
 const props = defineProps<{
-  value?: string[]
-  limit?: number
+  value?: string
 }>()
 
 const emit = defineEmits<{
-  'update:value': [value: string[]]
+  'update:value': [value: string]
 }>()
 
-const uploadUrl = '/api/upload/images'
+const uploadUrl = '/api/upload/image'
 const fileList = ref<UploadUserFile[]>([])
 
 // 监听 value 变化，更新文件列表
 watch(() => props.value, (newValue) => {
-  if (newValue?.length && !fileList.value.length) {
-    fileList.value = newValue.map((url, index) => ({
-      name: `Image ${index + 1}`,
-      url
-    }))
+  if (newValue && !fileList.value.length) {
+    fileList.value = [{
+      name: 'Current Image',
+      url: newValue
+    }]
   }
 }, { immediate: true })
 
@@ -66,12 +64,9 @@ const handleBeforeUpload: UploadProps['beforeUpload'] = (file) => {
   return true
 }
 
-const handleSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
+const handleSuccess: UploadProps['onSuccess'] = (response) => {
   if (response.code === 0 && response.data?.url) {
-    const urls = fileList.value
-      .map(file => file.url)
-      .filter(Boolean) as string[]
-    emit('update:value', urls)
+    emit('update:value', response.data.url)
     ElMessage.success('上传成功')
   } else {
     ElMessage.error(response.message || '上传失败')
@@ -82,17 +77,13 @@ const handleError: UploadProps['onError'] = () => {
   ElMessage.error('上传失败')
 }
 
-const handleRemove: UploadProps['onRemove'] = (file) => {
-  const urls = fileList.value
-    .filter(f => f.url !== file.url)
-    .map(f => f.url)
-    .filter(Boolean) as string[]
-  emit('update:value', urls)
+const handleRemove = () => {
+  emit('update:value', '')
 }
 </script>
 
 <style scoped>
-.batch-image-upload {
+.image-upload {
   width: 100%;
 }
 

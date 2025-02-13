@@ -2,38 +2,48 @@
   <div class="detail-view">
     <div class="header">
       <h2>测评明细详情</h2>
-      <el-button @click="router.back()">返回</el-button>
+      <div class="actions">
+        <el-button 
+          type="primary" 
+          @click="$router.push(`/demands/${demandId}/details/${detailId}/edit`)"
+        >
+          编辑
+        </el-button>
+        <el-button @click="$router.back()">返回</el-button>
+      </div>
     </div>
 
-    <el-descriptions v-if="detail" :column="3" border>
+    <el-descriptions v-loading="loading" :column="3" border>
       <el-descriptions-item label="订单号" :span="1">
-        {{ detail.order_number }}
+        {{ detail?.order_number }}
       </el-descriptions-item>
       <el-descriptions-item label="订单金额" :span="1">
-        ¥{{ detail.order_amount }}
+        ¥{{ detail?.order_amount }}
       </el-descriptions-item>
       <el-descriptions-item label="状态" :span="1">
-        <detail-status-tag :status="detail.status" />
+        <el-tag :type="getStatusType(detail?.status)">
+          {{ detail?.status_name }}
+        </el-tag>
       </el-descriptions-item>
       
       <el-descriptions-item label="下单时间" :span="1">
-        {{ formatDateTime(detail.order_time) }}
+        {{ formatDateTime(detail?.order_time) }}
       </el-descriptions-item>
       <el-descriptions-item label="评论时间" :span="1">
-        {{ formatDateTime(detail.review_time) }}
+        {{ formatDateTime(detail?.review_time) }}
       </el-descriptions-item>
       <el-descriptions-item label="备注" :span="1">
-        {{ detail.remark }}
+        {{ detail?.remark }}
       </el-descriptions-item>
     </el-descriptions>
 
-    <el-card v-if="detail" class="content-card">
+    <el-card class="content-card">
       <template #header>
         <div class="card-header">
           <span>评论内容</span>
         </div>
       </template>
-      <div class="review-content">{{ detail.review_content }}</div>
+      <div class="review-content">{{ detail?.review_content }}</div>
     </el-card>
 
     <el-row :gutter="20" class="preview-row">
@@ -76,35 +86,46 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import axios from 'axios'
-import DetailStatusTag from '@/components/DetailStatusTag.vue'
+import { demandApi } from '@/api/demand'
+import { DetailStatus } from '@/types/detail'
 import ImagePreview from '@/components/ImagePreview.vue'
 import VideoPreview from '@/components/VideoPreview.vue'
-import type { DemandDetail } from '@/types/detail'
 
-const router = useRouter()
 const route = useRoute()
-const detail = ref<DemandDetail | null>(null)
+const loading = ref(false)
+const detail = ref<any>(null)
+
+const demandId = route.params.demandId
+const detailId = route.params.detailId
 
 const formatDateTime = (date: string | null) => {
-  if (!date) return ''
+  if (!date) return '-'
   return new Date(date).toLocaleString()
 }
 
 const loadDetail = async () => {
   try {
-    const { data: response } = await axios.get(`/api/demand-details/${route.params.detailId}`)
-    if (response.code === 0) {
-      detail.value = response.data
-    } else {
-      ElMessage.error(response.message || '加载失败')
-    }
+    loading.value = true
+    const data = await demandApi.getDetailById(Number(detailId))
+    detail.value = data
   } catch (error) {
     console.error('Failed to load detail:', error)
-    ElMessage.error('加载失败')
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
   }
+}
+
+const getStatusType = (status: number) => {
+  const types: Record<number, '' | 'success' | 'warning' | 'danger'> = {
+    [DetailStatus.PENDING]: '',        // 待处理
+    [DetailStatus.ORDERED]: 'warning', // 已下单
+    [DetailStatus.REVIEWED]: 'success',// 已评价
+    [DetailStatus.CANCELLED]: 'danger' // 已取消
+  }
+  return types[status] || ''
 }
 
 onMounted(() => {
@@ -131,6 +152,7 @@ onMounted(() => {
 .review-content {
   white-space: pre-wrap;
   min-height: 60px;
+  line-height: 1.5;
 }
 
 .preview-row {
@@ -140,5 +162,18 @@ onMounted(() => {
 :deep(.el-card__header) {
   padding: 12px 20px;
   font-weight: 500;
+}
+
+.image-preview {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.video-preview {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
 }
 </style> 
