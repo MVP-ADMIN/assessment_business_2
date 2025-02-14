@@ -17,13 +17,14 @@ export default defineConfig({
     }
   },
   server: {
+    host: '0.0.0.0',  // 允许局域网访问
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://192.168.1.20:5000',  // 使用你的内网IP
         changeOrigin: true
       }
     }
   },
   base: '/'
-}) 
+})

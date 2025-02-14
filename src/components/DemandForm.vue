@@ -13,133 +13,120 @@
         </div>
       </template>
 
-      <el-form-item label="营销编号" prop="marketing_number">
-        <el-input 
-          v-model="formData.marketing_number" 
-          :disabled="isEdit"
-          placeholder="请输入营销编号"
-        />
-      </el-form-item>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="营销编号" prop="marketing_number">
+            <el-input v-model="formData.marketing_number" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="钉钉号" prop="dingtalk_number">
+            <el-input v-model="formData.dingtalk_number" />
+          </el-form-item>
+        </el-col>
+      </el-row>
 
-      <el-form-item label="钉钉号" prop="dingtalk_number">
-        <el-input 
-          v-model="formData.dingtalk_number"
-          :disabled="isEdit"
-          placeholder="请输入钉钉号"
-        />
-      </el-form-item>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="ASIN" prop="asin">
+            <el-input v-model="formData.asin" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="产品型号" prop="model_id">
+            <el-select 
+              v-model="formData.model_id"
+              placeholder="请选择产品型号"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="item in options.models"
+                :key="item.model_id"
+                :label="item.model_name"
+                :value="item.model_id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
 
-      <el-form-item label="ASIN" prop="asin">
-        <el-input 
-          v-model="formData.asin"
-          :disabled="isEdit"
-          placeholder="请输入ASIN"
-        />
-      </el-form-item>
+      <el-row :gutter="20">
+        <el-col :span="8">
+          <el-form-item label="店铺类型" prop="type_id">
+            <el-select v-model="formData.type_id" placeholder="请选择店铺类型" style="width: 100%">
+              <el-option
+                v-for="item in options.types"
+                :key="item.type_id"
+                :label="item.type_name"
+                :value="item.type_id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="平台" prop="platform_id">
+            <el-select v-model="formData.platform_id" placeholder="请选择平台" style="width: 100%">
+              <el-option
+                v-for="item in options.platforms"
+                :key="item.platform_id"
+                :label="item.platform_name"
+                :value="item.platform_id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="国家" prop="country_id">
+            <el-select v-model="formData.country_id" placeholder="请选择国家" style="width: 100%">
+              <el-option
+                v-for="item in options.countries"
+                :key="item.country_id"
+                :label="item.country_name"
+                :value="item.country_id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
 
-      <el-form-item label="产品型号" prop="model_id">
-        <el-select 
-          v-model="formData.model_id" 
-          placeholder="请选择产品型号"
-        >
-          <el-option
-            v-for="item in modelOptions"
-            :key="item.model_id"
-            :label="item.model_name"
-            :value="item.model_id"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="店铺类型" prop="type_id">
-        <el-select 
-          v-model="formData.type_id" 
-          placeholder="请选择店铺类型"
-          :disabled="isEdit"
-        >
-          <el-option
-            v-for="item in typeOptions"
-            :key="item.type_id"
-            :label="item.type_name"
-            :value="item.type_id"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="平台" prop="platform_id">
-        <el-select 
-          v-model="formData.platform_id"
-          :disabled="isEdit"
-        >
-          <el-option
-            v-for="item in platformOptions"
-            :key="item.platform_id"
-            :label="item.platform_name"
-            :value="item.platform_id"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="国家" prop="country_id">
-        <el-select 
-          v-model="formData.country_id"
-          :disabled="isEdit"
-        >
-          <el-option
-            v-for="item in countryOptions"
-            :key="item.country_id"
-            :label="item.country_name"
-            :value="item.country_id"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="品牌" prop="brand_id">
-        <el-select 
-          v-model="formData.brand_id"
-          :disabled="isEdit"
-        >
-          <el-option
-            v-for="item in brandOptions"
-            :key="item.brand_id"
-            :label="item.brand_name"
-            :value="item.brand_id"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="店铺" prop="store_id">
-        <el-select v-model="formData.store_id" placeholder="请选择店铺">
-          <el-option
-            v-for="item in storeOptions"
-            :key="item.store_id"
-            :label="item.store_name"
-            :value="item.store_id"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="账号" prop="account_id">
-        <el-select v-model="formData.account_id" placeholder="请选择账号">
-          <el-option
-            v-for="item in accountOptions"
-            :key="item.account_id"
-            :label="item.account_name"
-            :value="item.account_id"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="搜索方式" prop="method_id">
-        <el-select v-model="formData.method_id" placeholder="请选择搜索方式">
-          <el-option
-            v-for="item in methodOptions"
-            :key="item.method_id"
-            :label="item.method_name"
-            :value="item.method_id"
-          />
-        </el-select>
-      </el-form-item>
+      <el-row :gutter="20">
+        <el-col :span="8">
+          <el-form-item label="品牌" prop="brand_id">
+            <el-select v-model="formData.brand_id" placeholder="请选择品牌" style="width: 100%">
+              <el-option
+                v-for="item in options.brands"
+                :key="item.brand_id"
+                :label="item.brand_name"
+                :value="item.brand_id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="店铺" prop="store_id">
+            <el-select v-model="formData.store_id" placeholder="请选择店铺" style="width: 100%">
+              <el-option
+                v-for="item in options.stores"
+                :key="item.store_id"
+                :label="item.store_name"
+                :value="item.store_id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="搜索方式" prop="method_id">
+            <el-select v-model="formData.method_id" placeholder="请选择搜索方式" style="width: 100%">
+              <el-option
+                v-for="item in options.methods"
+                :key="item.method_id"
+                :label="item.method_name"
+                :value="item.method_id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
     </el-card>
 
     <el-card class="form-card">
@@ -149,30 +136,28 @@
         </div>
       </template>
 
-      <el-form-item label="评估数量" prop="assessment_quantity">
-        <el-input-number v-model="formData.assessment_quantity" :min="0" />
-      </el-form-item>
-
-      <el-form-item label="文字评论数" prop="text_review_quantity">
-        <el-input-number v-model="formData.text_review_quantity" :min="0" />
-      </el-form-item>
-
-      <el-form-item label="图片评论数" prop="image_review_quantity">
-        <el-input-number v-model="formData.image_review_quantity" :min="0" />
-      </el-form-item>
-
-      <el-form-item label="视频评论数" prop="video_review_quantity">
-        <el-input-number v-model="formData.video_review_quantity" :min="0" />
-      </el-form-item>
-
-      <el-form-item label="产品价格" prop="product_price">
-        <el-input-number 
-          v-model="formData.product_price" 
-          :precision="2"
-          :step="0.01"
-          :min="0"
-        />
-      </el-form-item>
+      <el-row :gutter="20">
+        <el-col :span="6">
+          <el-form-item label="评估数量" prop="assessment_quantity">
+            <el-input-number v-model="formData.assessment_quantity" :min="0" style="width: 100%" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="文字评论" prop="text_review_quantity">
+            <el-input-number v-model="formData.text_review_quantity" :min="0" style="width: 100%" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="图片评论" prop="image_review_quantity">
+            <el-input-number v-model="formData.image_review_quantity" :min="0" style="width: 100%" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="视频评论" prop="video_review_quantity">
+            <el-input-number v-model="formData.video_review_quantity" :min="0" style="width: 100%" />
+          </el-form-item>
+        </el-col>
+      </el-row>
     </el-card>
 
     <el-card class="form-card">
@@ -261,48 +246,19 @@ const emit = defineEmits(['update:modelValue'])
 const formRef = ref<FormInstance>()
 
 // 选项数据
-const modelOptions = ref<ModelOption[]>([])
-const typeOptions = ref<TypeOption[]>([])
-const platformOptions = ref<PlatformOption[]>([])
-const countryOptions = ref<CountryOption[]>([])
-const brandOptions = ref<BrandOption[]>([])
-const storeOptions = ref<StoreOption[]>([])
-const accountOptions = ref<AccountOption[]>([])
-const methodOptions = ref<MethodOption[]>([])
-const adEntryOptions = ref<Array<{ option_id: number; option_name: string }>>([])
-const variantOptions = ref<Array<{ option_id: number; option_name: string }>>([])
-
-// 表单数据
-const formData = ref({
-  marketing_number: '',
-  dingtalk_number: '',
-  asin: '',
-  model_id: undefined as number | undefined,
-  type_id: undefined as number | undefined,
-  platform_id: undefined as number | undefined,
-  country_id: undefined as number | undefined,
-  brand_id: undefined as number | undefined,
-  store_id: undefined as number | undefined,
-  account_id: undefined as number | undefined,
-  method_id: undefined as number | undefined,
-  assessment_quantity: 0,
-  text_review_quantity: 0,
-  image_review_quantity: 0,
-  video_review_quantity: 0,
-  product_price: null as number | null,
-  search_keyword: '',
-  hyperlink: '',
-  other_notes: '',
-  status_id: DemandStatus.PENDING,
-  ordered_quantity: 0,
-  unordered_quantity: 0,
-  reviewed_quantity: 0,
-  unreviewed_quantity: 0,
-  registration_date: null,
-  first_order_date: null,
-  ad_entry_option_id: undefined as number | undefined,
-  variant_option_id: undefined as number | undefined,
+const options = ref({
+  models: [],
+  types: [],
+  platforms: [],
+  countries: [],
+  brands: [],
+  stores: [],
+  accounts: [],
+  methods: []
 })
+
+// 创建本地表单数据的副本
+const formData = ref({ ...props.modelValue })
 
 const statusOptions = [
   { value: DemandStatus.PENDING, label: '待处理' },
@@ -361,16 +317,16 @@ const loadOptions = async () => {
     console.log('Options loaded:', response)
     
     if (response) {
-      modelOptions.value = response.models || []
-      typeOptions.value = response.types || []
-      platformOptions.value = response.platforms || []
-      countryOptions.value = response.countries || []
-      brandOptions.value = response.brands || []
-      storeOptions.value = response.stores || []
-      accountOptions.value = response.accounts || []
-      methodOptions.value = response.methods || []
-      adEntryOptions.value = response.adEntryOptions || []
-      variantOptions.value = response.variantOptions || []
+      options.value = {
+        models: response.models || [],
+        types: response.types || [],
+        platforms: response.platforms || [],
+        countries: response.countries || [],
+        brands: response.brands || [],
+        stores: response.stores || [],
+        accounts: response.accounts || [],
+        methods: response.methods || []
+      }
     }
   } catch (error) {
     console.error('Failed to load options:', error)
@@ -378,34 +334,28 @@ const loadOptions = async () => {
   }
 }
 
-// 监听外部数据变化
+// 监听表单数据变化并同步到父组件
 watch(
-  () => props.modelValue,
-  (val) => {
-    if (val && Object.keys(val).length > 0) {
-      console.log('Form received data:', val)
-      formData.value = {
-        ...formData.value,
-        ...val
-      }
-    }
-  },
-  { immediate: true, deep: true }
-)
-
-// 监听表单数据变化
-watch(
-  () => formData.value,
-  (val) => {
-    console.log('Form data changed:', val)
-    emit('update:modelValue', val)
+  formData,
+  (newVal) => {
+    console.log('Form data changed:', newVal)
+    emit('update:modelValue', { ...newVal })
   },
   { deep: true }
 )
 
-// 确保组件挂载时加载选项
-onMounted(async () => {
-  await loadOptions()
+// 监听外部数据变化并更新本地表单
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    console.log('Props changed:', newVal)
+    formData.value = { ...newVal }
+  },
+  { deep: true }
+)
+
+onMounted(() => {
+  loadOptions()
 })
 
 defineExpose({
@@ -426,5 +376,9 @@ defineExpose({
 .form-actions {
   text-align: center;
   margin-top: 20px;
+}
+
+.card-header {
+  font-weight: bold;
 }
 </style> 

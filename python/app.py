@@ -24,33 +24,78 @@ from routes.refund import refund_bp  # 导入蓝图
 app = Flask(__name__)
 port = 3000
 
+# # CORS 配置
+# cors_options = {
+#     "origins": ["http://localhost:5173", "http://127.0.0.1:5173""http://192.168.1.20:5173""http://192.168.1.20:5000""http://192.168.1.20:5173""http://192.168.1.20:3000"],
+#     "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+#     "allow_headers": [
+#         "Content-Type",
+#         "Accept",
+#         "Authorization",
+#         "X-Requested-With",
+#         "X-Token",
+#         "X-Username",
+#         "X-Password"
+#     ],
+#     "expose_headers": [
+#         "Content-Length",
+#         "Content-Type",
+#         "Authorization",
+#         "X-Token"
+#     ],
+#     "supports_credentials": True
+# }
+# CORS(app, resources={
+#     r"/api/*": cors_options,
+#     r"/basic-api/*": cors_options,  # 添加 basic-api 路径的 CORS 配置
+#     r"/uploads/*": cors_options     # 添加 uploads 路径的 CORS 配置
+# })
 # CORS 配置
 cors_options = {
-    "origins": ["http://localhost:5173", "http://127.0.0.1:5173"],
+    "origins": [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://192.168.1.20:5173",  # 添加你的内网 IP
+        "http://192.168.1.20:5000"   # 添加后端地址
+    ],
     "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     "allow_headers": [
-        "Content-Type", 
-        "Accept", 
-        "Authorization", 
+        "Content-Type",
+        "Accept",
+        "Authorization",
         "X-Requested-With",
         "X-Token",
         "X-Username",
-        "X-Password"
+        "X-Password",
+        "Origin"  # 添加 Origin 头
     ],
     "expose_headers": [
-        "Content-Length", 
-        "Content-Type", 
+        "Content-Length",
+        "Content-Type",
         "Authorization",
         "X-Token"
     ],
-    "supports_credentials": True
+    "supports_credentials": True,
+    "allow_credentials": True,  # 添加这行
+    "max_age": 3600  # 添加预检请求缓存时间
 }
+
 CORS(app, resources={
     r"/api/*": cors_options,
-    r"/basic-api/*": cors_options,  # 添加 basic-api 路径的 CORS 配置
-    r"/uploads/*": cors_options     # 添加 uploads 路径的 CORS 配置
+    r"/basic-api/*": cors_options,
+    r"/uploads/*": cors_options
 })
 
+# 添加全局 CORS 处理
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin')
+    if origin in cors_options["origins"]:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
 # 文件上传配置
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_FOLDER = BASE_DIR / 'public' / 'uploads'

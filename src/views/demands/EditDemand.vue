@@ -2,48 +2,53 @@
   <div class="edit-demand">
     <div class="header">
       <h2>编辑需求</h2>
+      <el-button @click="$router.back()">返回</el-button>
     </div>
     
-    <div v-loading="loading">
+    <el-card v-loading="loading">
       <DemandForm
         v-if="formData"
+        ref="formRef"
+        v-model="formData"
         :initial-data="formData"
-        @submit="handleSubmit"
       />
       <div v-else class="loading-placeholder">
         <el-empty description="加载中..." />
       </div>
-    </div>
+
+      <div class="form-actions">
+        <el-button type="primary" @click="handleSubmit" :loading="loading">保存</el-button>
+        <el-button @click="$router.back()">取消</el-button>
+      </div>
+    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import axios from 'axios'
-import DemandForm from '../../components/DemandForm.vue'
+import type { FormInstance } from 'element-plus'
+import DemandForm from '@/components/DemandForm.vue'
+import { demandApi } from '@/api/demand'
 
 const route = useRoute()
 const router = useRouter()
+const formRef = ref<FormInstance>()
 const loading = ref(false)
-const demandId = computed(() => route.params.id)
 const formData = ref<any>(null)
 
 // 加载需求数据
 const loadDemand = async () => {
-  if (!demandId.value) {
-    ElMessage.error('需求ID不存在')
-    return
-  }
-
   try {
     loading.value = true
-    const { data: response } = await axios.get(`/api/demands/${demandId.value}`)
-    if (response.code === 0) {
+    const id = Number(route.params.id)
+    const response = await demandApi.detail(id)
+    
+    if (response.code === 0 && response.data) {
       formData.value = response.data
     } else {
-      ElMessage.error(response.message || '获取需求详情失败')
+      ElMessage.error('获取需求详情失败')
     }
   } catch (error) {
     console.error('Failed to load demand:', error)
@@ -54,20 +59,20 @@ const loadDemand = async () => {
 }
 
 // 提交表单
-const handleSubmit = async (data: any) => {
-  if (!demandId.value) {
-    ElMessage.error('需求ID不存在')
-    return
-  }
-
+const handleSubmit = async () => {
+  if (!formRef.value) return
+  
   try {
+    await formRef.value.validate()
     loading.value = true
-    const { data: response } = await axios.put(`/api/demands/${demandId.value}`, data)
+    const id = Number(route.params.id)
+    
+    const response = await demandApi.update(id, formData.value)
     if (response.code === 0) {
       ElMessage.success('保存成功')
       router.push('/demands')
     } else {
-      ElMessage.error(response.message || '保存失败')
+      ElMessage.error('保存失败')
     }
   } catch (error) {
     console.error('Failed to update demand:', error)
@@ -88,7 +93,22 @@ onMounted(() => {
 }
 
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+}
+
+.form-actions {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.form-actions .el-button {
+  min-width: 120px;
+  margin: 0 10px;
 }
 
 .loading-placeholder {
