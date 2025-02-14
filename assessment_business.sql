@@ -11,7 +11,7 @@
  Target Server Version : 50744
  File Encoding         : 65001
 
- Date: 13/02/2025 15:14:53
+ Date: 14/02/2025 11:57:37
 */
 
 SET NAMES utf8mb4;
@@ -107,7 +107,7 @@ CREATE TABLE `change_logs`  (
   CONSTRAINT `change_logs_ibfk_1` FOREIGN KEY (`demand_id`) REFERENCES `demands` (`demand_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `change_logs_ibfk_2` FOREIGN KEY (`old_status_id`) REFERENCES `demand_status` (`status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `change_logs_ibfk_3` FOREIGN KEY (`new_status_id`) REFERENCES `demand_status` (`status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of change_logs
@@ -122,6 +122,9 @@ INSERT INTO `change_logs` VALUES (7, 2, '2025-02-12 13:45:06', '暂停原因: 1'
 INSERT INTO `change_logs` VALUES (8, 2, '2025-02-12 15:06:49', '继续执行原因: 010', 2, 1);
 INSERT INTO `change_logs` VALUES (9, 2, '2025-02-13 15:09:21', '暂停原因: 1', 1, 2);
 INSERT INTO `change_logs` VALUES (10, 2, '2025-02-13 15:09:26', '继续执行原因: 11', 2, 1);
+INSERT INTO `change_logs` VALUES (11, 2, '2025-02-13 15:24:38', '暂停原因: 12312', 1, 2);
+INSERT INTO `change_logs` VALUES (12, 3, '2025-02-13 17:08:19', '继续执行原因: 1', 2, 1);
+INSERT INTO `change_logs` VALUES (13, 5, '2025-02-13 18:51:51', '暂停原因: 123123', 1, 2);
 
 -- ----------------------------
 -- Table structure for countries
@@ -167,7 +170,7 @@ CREATE TABLE `demand_details`  (
   PRIMARY KEY (`detail_id`) USING BTREE,
   INDEX `demand_id`(`demand_id`) USING BTREE,
   CONSTRAINT `demand_details_ibfk_1` FOREIGN KEY (`demand_id`) REFERENCES `demands` (`demand_id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of demand_details
@@ -180,6 +183,7 @@ INSERT INTO `demand_details` VALUES (5, 1, '1100123123', 1100.00, '2025-02-13 09
 INSERT INTO `demand_details` VALUES (6, 2, '11000', 1100.00, '2025-02-13 11:14:34', '', NULL, NULL, NULL, '/uploads/20250213111446_FC3EEFA6-14D8-4afb-B862-328CF5694D76.png', '/uploads/20250213111437_4A25F286-7F0E-4589-B214-AA996E97ABF7.png', NULL, 2, NULL, '2025-02-13 11:14:50', '2025-02-13 11:14:50');
 INSERT INTO `demand_details` VALUES (7, 2, '123123100010', 11000.00, '2025-02-13 11:17:53', '', NULL, NULL, NULL, '/uploads/20250213111810_c3d5e180-9123-4474-92ac-e9ec0e23ebc2.png', '/uploads/20250213111756_4A25F286-7F0E-4589-B214-AA996E97ABF7.png', NULL, 2, NULL, '2025-02-13 11:18:23', '2025-02-13 11:18:23');
 INSERT INTO `demand_details` VALUES (8, 3, '123123123123', 1111.00, '2025-02-13 15:00:29', '', NULL, NULL, NULL, '/uploads/20250213150039_fe2a03ef-9123-4d65-b131-b31a1373da69.png', '/uploads/20250213150033_FC3EEFA6-14D8-4afb-B862-328CF5694D76.png', NULL, 3, NULL, '2025-02-13 15:00:43', '2025-02-13 15:00:43');
+INSERT INTO `demand_details` VALUES (9, 4, '1231231', 111.00, '2025-02-13 18:50:09', '', NULL, NULL, NULL, '/uploads/20250213185017_Untitled_1.png', '/uploads/20250213185013_1200x1200_1_6fd956f0aef8440c8d6b11f63ad22ae9.jpg', NULL, 1, NULL, '2025-02-13 18:50:21', '2025-02-13 18:50:21');
 
 -- ----------------------------
 -- Table structure for demand_images
@@ -239,7 +243,7 @@ CREATE TABLE `demand_status`  (
 INSERT INTO `demand_status` VALUES (1, '进行中', '绿', '需求正在进行中');
 INSERT INTO `demand_status` VALUES (2, '暂停', '黄', '需求已暂停');
 INSERT INTO `demand_status` VALUES (3, '终止', '灰', '需求已终止');
-INSERT INTO `demand_status` VALUES (4, '已完成', '灰', '需求已完成');
+INSERT INTO `demand_status` VALUES (4, '已完成', '橙', '需求已完成');
 
 -- ----------------------------
 -- Table structure for demand_videos
@@ -331,14 +335,16 @@ CREATE TABLE `demands`  (
   CONSTRAINT `demands_ibfk_7` FOREIGN KEY (`store_id`) REFERENCES `stores` (`store_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `demands_ibfk_8` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`account_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `demands_ibfk_9` FOREIGN KEY (`method_id`) REFERENCES `search_methods` (`method_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of demands
 -- ----------------------------
 INSERT INTO `demands` VALUES (1, '1231231231', '23123123', '123123', 123123, 123123, 123123, 123, 123123, 12312, 23123, 123213, 21312, 312312, 3123123, '2024-02-02 22:22:00', '2025-02-02 22:22:00', 222.00, '12312', '12312', '3123', '12312', '3123', '12312', '3123123', '11231', 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, '2025-02-12 13:16:35');
-INSERT INTO `demands` VALUES (2, '1341564641', '13156161', '1615561', 111, 11, 111, 11, 0, 0, 0, 0, 0, 0, 0, '2025-02-12 00:00:00', '2025-02-12 00:00:00', NULL, '', 'https://1231.com', '', '', '', '', '', '1231', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, '2025-02-13 15:09:26');
-INSERT INTO `demands` VALUES (3, '16160561606', '1561351', '156165165', 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 2, 1, 1, 1, 3, 1, 2, 2, 2, 2, 2, '2025-02-13 11:49:50');
+INSERT INTO `demands` VALUES (2, '1341564641', '13156161', '1615561', 111, 11, 111, 11, 0, 0, 0, 0, 0, 0, 0, '2025-02-12 00:00:00', '2025-02-12 00:00:00', NULL, '', 'https://1231.com', '', '', '', '', '', '1231', 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, '2025-02-13 15:24:38');
+INSERT INTO `demands` VALUES (3, '16160561606', '1561351', '156165165', 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 1, 1, 1, 1, 3, 1, 2, 2, 2, 2, 2, '2025-02-13 17:08:19');
+INSERT INTO `demands` VALUES (4, '16160561606', '1561351', '156165165156165165', 111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 1, 2, 2, 2, 2, 1, 2, 3, 2, 1, 1, '2025-02-13 18:49:21');
+INSERT INTO `demands` VALUES (5, '12312312312', '3212312', '312312312', 1111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, '2025-02-13 18:51:51');
 
 -- ----------------------------
 -- Table structure for import_history
@@ -408,9 +414,6 @@ CREATE TABLE `platforms`  (
 INSERT INTO `platforms` VALUES (1, '亚马逊');
 INSERT INTO `platforms` VALUES (2, 'eBay');
 INSERT INTO `platforms` VALUES (3, 'Shopee');
-INSERT INTO `platforms` VALUES (4, '亚马逊');
-INSERT INTO `platforms` VALUES (5, 'eBay');
-INSERT INTO `platforms` VALUES (6, 'Shopee');
 
 -- ----------------------------
 -- Table structure for product_models
@@ -428,9 +431,6 @@ CREATE TABLE `product_models`  (
 INSERT INTO `product_models` VALUES (1, '型号A');
 INSERT INTO `product_models` VALUES (2, '型号B');
 INSERT INTO `product_models` VALUES (3, '型号C');
-INSERT INTO `product_models` VALUES (4, '型号A');
-INSERT INTO `product_models` VALUES (5, '型号B');
-INSERT INTO `product_models` VALUES (6, '型号C');
 
 -- ----------------------------
 -- Table structure for progress_info
@@ -607,9 +607,6 @@ CREATE TABLE `stores`  (
 INSERT INTO `stores` VALUES (1, '店铺A');
 INSERT INTO `stores` VALUES (2, '店铺B');
 INSERT INTO `stores` VALUES (3, '店铺C');
-INSERT INTO `stores` VALUES (4, '店铺A');
-INSERT INTO `stores` VALUES (5, '店铺B');
-INSERT INTO `stores` VALUES (6, '店铺C');
 
 -- ----------------------------
 -- Table structure for system_info_table

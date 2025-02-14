@@ -1,118 +1,242 @@
 <template>
-  <div class="edit-demand">
-    <div class="header">
-      <h2>编辑需求</h2>
-      <el-button @click="$router.back()">返回</el-button>
-    </div>
-    
+  <div class="demand-detail">
     <el-card v-loading="loading">
-      <DemandForm
-        v-if="formData"
-        ref="formRef"
-        v-model="formData"
-        :initial-data="formData"
-      />
-      <div v-else class="loading-placeholder">
-        <el-empty description="加载中..." />
-      </div>
+      <template #header>
+        <div class="card-header">
+          <h2>需求详情</h2>
+          <div class="actions">
+            <el-button 
+              type="primary" 
+              @click="$router.push(`/demands/${id}/edit`)"
+            >
+              编辑
+            </el-button>
+            <el-button @click="$router.push('/demands')">
+              返回
+            </el-button>
+          </div>
+        </div>
+      </template>
 
-      <div class="form-actions">
-        <el-button type="primary" @click="handleSubmit" :loading="loading">保存</el-button>
-        <el-button @click="$router.back()">取消</el-button>
+      <el-descriptions :column="3" border>
+        <el-descriptions-item label="营销编号">
+          {{ demand?.marketing_number }}
+        </el-descriptions-item>
+        <el-descriptions-item label="钉钉号">
+          {{ demand?.dingtalk_number }}
+        </el-descriptions-item>
+        <el-descriptions-item label="ASIN">
+          {{ demand?.asin }}
+        </el-descriptions-item>
+        
+        <el-descriptions-item label="评估数量">
+          {{ demand?.assessment_quantity }}
+        </el-descriptions-item>
+        <el-descriptions-item label="文字评论数">
+          {{ demand?.text_review_quantity }}
+        </el-descriptions-item>
+        <el-descriptions-item label="图片评论数">
+          {{ demand?.image_review_quantity }}
+        </el-descriptions-item>
+        
+        <el-descriptions-item label="视频评论数">
+          {{ demand?.video_review_quantity }}
+        </el-descriptions-item>
+        <el-descriptions-item label="产品价格">
+          {{ demand?.product_price }}
+        </el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getStatusType(demand?.status_id)">
+            {{ demand?.status_name }}
+          </el-tag>
+        </el-descriptions-item>
+        
+        <el-descriptions-item label="搜索关键词" :span="3">
+          {{ demand?.search_keyword }}
+        </el-descriptions-item>
+        
+        <el-descriptions-item label="链接" :span="3">
+          <el-link type="primary" :href="demand?.hyperlink" target="_blank">
+            {{ demand?.hyperlink }}
+          </el-link>
+        </el-descriptions-item>
+        
+        <el-descriptions-item label="备注" :span="3">
+          {{ demand?.other_notes }}
+        </el-descriptions-item>
+      </el-descriptions>
+
+      <!-- 测评明细列表 -->
+      <div class="details-section">
+        <div class="section-header">
+          <h3>测评明细</h3>
+          <el-button 
+            type="primary"
+            @click="$router.push(`/demands/${id}/details/create`)"
+          >
+            新增明细
+          </el-button>
+        </div>
+
+        <el-table :data="details" border>
+          <el-table-column prop="order_number" label="订单号" />
+          <el-table-column prop="order_amount" label="订单金额" />
+          <el-table-column prop="order_time" label="下单时间" />
+          <el-table-column prop="review_time" label="评论时间" />
+          <el-table-column label="状态">
+            <template #default="{ row }">
+              <detail-status-tag :status="row.status" />
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="200">
+            <template #default="{ row }">
+              <el-button 
+                link 
+                type="primary" 
+                @click="$router.push(`/demands/${id}/details/${row.detail_id}`)"
+              >
+                查看
+              </el-button>
+              <el-button 
+                link 
+                type="primary" 
+                @click="$router.push(`/demands/${id}/details/${row.detail_id}/edit`)"
+              >
+                编辑
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
     </el-card>
+
+    <el-card class="content-card">
+      <template #header>
+        <div class="card-header">
+          <span>评论内容</span>
+        </div>
+      </template>
+      <div class="review-content">{{ detail?.review_content }}</div>
+    </el-card>
+
+    <el-row :gutter="20" class="preview-row">
+      <el-col :span="8">
+        <el-card>
+          <template #header>评论图片</template>
+          <UploadImage 
+            :modelValue="detail?.review_images"
+            readonly
+            multiple
+          />
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card>
+          <template #header>评论视频</template>
+          <UploadVideo 
+            :modelValue="detail?.review_video"
+            readonly
+          />
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card>
+          <template #header>支付截图</template>
+          <UploadImage 
+            :modelValue="detail?.payment_screenshot"
+            readonly
+          />
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import type { FormInstance } from 'element-plus'
-import DemandForm from '@/components/DemandForm.vue'
 import { demandApi } from '@/api/demand'
+import DetailStatusTag from '@/components/DetailStatusTag.vue'
+import { DemandStatus } from '@/types/demand'
+import UploadImage from '@/components/UploadImage.vue'
+import UploadVideo from '@/components/UploadVideo.vue'
 
 const route = useRoute()
-const router = useRouter()
-const formRef = ref<FormInstance>()
+const id = route.params.id as string
 const loading = ref(false)
-const formData = ref<any>(null)
+const demand = ref<any>(null)
+const details = ref([])
+const detail = ref<any>(null)
 
-// 加载需求数据
-const loadDemand = async () => {
+const loadData = async () => {
   try {
     loading.value = true
-    const id = Number(route.params.id)
-    const response = await demandApi.detail(id)
-    
-    if (response.code === 0 && response.data) {
-      formData.value = response.data
-    } else {
-      ElMessage.error('获取需求详情失败')
-    }
+    const data = await demandApi.detail(Number(id))
+    demand.value = data
+    // 加载测评明细
+    const detailsData = await demandApi.getDetails(Number(id))
+    details.value = detailsData
+    detail.value = detailsData[0]
   } catch (error) {
     console.error('Failed to load demand:', error)
-    ElMessage.error('获取需求详情失败')
+    ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
   }
 }
 
-// 提交表单
-const handleSubmit = async () => {
-  if (!formRef.value) return
-  
-  try {
-    await formRef.value.validate()
-    loading.value = true
-    const id = Number(route.params.id)
-    
-    const response = await demandApi.update(id, formData.value)
-    if (response.code === 0) {
-      ElMessage.success('保存成功')
-      router.push('/demands')
-    } else {
-      ElMessage.error('保存失败')
-    }
-  } catch (error) {
-    console.error('Failed to update demand:', error)
-    ElMessage.error('保存失败')
-  } finally {
-    loading.value = false
+const getStatusType = (statusId: number) => {
+  const types: Record<number, '' | 'success' | 'warning' | 'danger'> = {
+    [DemandStatus.PENDING]: '',           // 待处理
+    [DemandStatus.PROCESSING]: 'warning', // 进行中
+    [DemandStatus.PAUSED]: 'info',        // 已暂停
+    [DemandStatus.COMPLETED]: 'success',  // 已完成
+    [DemandStatus.CANCELLED]: 'danger'    // 已取消
   }
+  return types[statusId] || ''
 }
 
 onMounted(() => {
-  loadDemand()
+  loadData()
 })
 </script>
 
 <style scoped>
-.edit-demand {
+.demand-detail {
   padding: 20px;
 }
 
-.header {
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.details-section {
+  margin-top: 20px;
+}
+
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.form-actions {
-  text-align: center;
+.section-header h3 {
+  margin: 0;
+}
+
+.content-card {
   margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
 }
 
-.form-actions .el-button {
-  min-width: 120px;
-  margin: 0 10px;
+.review-content {
+  padding: 20px;
 }
 
-.loading-placeholder {
-  padding: 40px;
-  text-align: center;
+.preview-row {
+  margin-top: 20px;
 }
 </style> 
