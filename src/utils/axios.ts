@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 import { request } from 'http'
 
 const request = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://192.168.1.20:5000',
+  baseURL: 'http://192.168.1.20:5000',
   timeout: 10000
 })
 
@@ -21,15 +21,11 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
   (response) => {
-    const { code, message, data } = response.data
-    if (code === 0) {
-      return data
-    }
-    ElMessage.error(message || '请求失败')
-    return Promise.reject(new Error(message || '请求失败'))
+    return response // 直接返回整个响应对象，在组件中处理数据
   },
   (error) => {
-    ElMessage.error(error.message || '网络错误')
+    console.error('API request failed:', error)
+    ElMessage.error(error.response?.data?.message || error.message || '请求失败')
     return Promise.reject(error)
   }
 )

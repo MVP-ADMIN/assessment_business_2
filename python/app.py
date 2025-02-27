@@ -1490,236 +1490,23 @@ def get_payment_status():
         print('Error fetching payment status:', str(error))
         return jsonify({'error': str(error)}), 500
 
-# 创建测评明细
-@app.route('/api/demand-details', methods=['POST'])
-def create_demand_detail():
+# 创建测评明细时关联中介
+@app.route('/api/demands/<int:demand_id>/details', methods=['POST'])
+def create_demand_detail(demand_id):
     try:
         data = request.json
-        print("Received data:", data)  # 添加日志
+        agent_id = data.pop('agent_id', None)  # 从请求数据中提取中介ID
         
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        
-        # 处理可能为 None 的字段
-        review_time = data.get('review_time') or None
-        
-        # 确保 review_images 是列表并且所有元素都是字符串
-        review_images = data.get('review_images', [])
-        if review_images and isinstance(review_images, list):
-            review_images = [str(img) for img in review_images if img]
-            review_images = ','.join(review_images) if review_images else None
-        else:
-            review_images = None
-            
-        review_video = data.get('review_video') or None
-        payment_screenshot = data.get('payment_screenshot') or None
-        order_screenshot = data.get('order_screenshot') or None
-        review_screenshot = data.get('review_screenshot') or None
-        remark = data.get('remark') or None
-        
-        # 打印处理后的数据
-        print("Processed data:", {
-            'review_time': review_time,
-            'review_images': review_images,
-            'review_video': review_video,
-            'payment_screenshot': payment_screenshot,
-            'order_screenshot': order_screenshot,
-            'review_screenshot': review_screenshot,
-            'remark': remark
-        })
-        
-        # 插入明细数据
-        insert_query = '''
-            INSERT INTO demand_details (
-                demand_id, order_number, order_amount, order_time,
-                review_content, review_time, review_images, review_video,
-                payment_screenshot, order_screenshot, review_screenshot,
-                status, remark
-            ) VALUES (
-                %(demand_id)s, %(order_number)s, %(order_amount)s, %(order_time)s,
-                %(review_content)s, %(review_time)s, %(review_images)s, %(review_video)s,
-                %(payment_screenshot)s, %(order_screenshot)s, %(review_screenshot)s,
-                %(status)s, %(remark)s
-            )
-        '''
-        
-        insert_data = {
-            'demand_id': data['demand_id'],
-            'order_number': data['order_number'],
-            'order_amount': data['order_amount'],
-            'order_time': data['order_time'],
-            'review_content': data.get('review_content'),
-            'review_time': review_time,
-            'review_images': review_images,
-            'review_video': review_video,
-            'payment_screenshot': payment_screenshot,
-            'order_screenshot': order_screenshot,
-            'review_screenshot': review_screenshot,
-            'status': data.get('status', 1),  # 默认状态为1
-            'remark': remark
-        }
-        
-        # 打印最终的插入数据
-        print("Insert data:", insert_data)
-        
-        cursor.execute(insert_query, insert_data)
-        detail_id = cursor.lastrowid
-        
-        # 获取插入的数据
-        cursor.execute('SELECT * FROM demand_details WHERE detail_id = %s', (detail_id,))
-        result = cursor.fetchone()
-        
-        # 处理返回数据中的图片列表
-        if result and result.get('review_images'):
-            result['review_images'] = result['review_images'].split(',')
-        else:
-            result['review_images'] = []
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            'code': 0,  # 确保成功时返回 code: 0
-            'message': 'Detail created successfully',
-            'data': result
-        })
-        
-    except Exception as error:
-        print('Error creating demand detail:', str(error))
-        print('Request data:', request.json)  # 添加请求数据日志
-        return jsonify({
-            'code': 1,
-            'message': str(error)
-        }), 500
-
-# 获取需求明细列表
-@app.route('/api/demands/<int:demand_id>/details', methods=['GET'])
-def get_demand_details(demand_id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # 检查需求是否存在
-        cursor.execute('SELECT demand_id FROM demands WHERE demand_id = %s', (demand_id,))
-        if not cursor.fetchone():
-            return jsonify({
-                'code': 1,
-                'message': '需求不存在'
-            }), 404
-            
-        # 获取明细列表
-        cursor.execute('''
-            SELECT 
-                dd.*,
-                ds.status_name
-            FROM demand_details dd
-            LEFT JOIN demand_status ds ON dd.status = ds.status_id
-            WHERE dd.demand_id = %s 
-            ORDER BY dd.created_at DESC
-        ''', (demand_id,))
-        
-        rows = cursor.fetchall()
-        
-        # 处理图片列表
-        for row in rows:
-            if row.get('review_images'):
-                row['review_images'] = row['review_images'].split(',')
-            else:
-                row['review_images'] = []
-                
-            # 处理数值字段
-            row['order_amount'] = float(row['order_amount'] or 0)
-        
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            'code': 0,
-            'message': 'success',
-            'data': rows
-        })
-        
-    except Exception as error:
-        print('Error fetching demand details:', str(error))
-        return jsonify({
-            'code': 1,
-            'message': str(error)
-        }), 500
-
-# 获取单个测评明细
-@app.route('/api/demand-details/<int:detail_id>', methods=['GET'])
-def get_demand_detail(detail_id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        cursor.execute('''
-            SELECT 
-                dd.*,
-                ds.status_name
-            FROM demand_details dd
-            LEFT JOIN demand_status ds ON dd.status = ds.status_id
-            WHERE dd.detail_id = %s
-        ''', (detail_id,))
-        
-        result = cursor.fetchone()
-        
-        if not result:
-            return jsonify({
-                'code': 1,
-                'message': '明细不存在'
-            }), 404
-            
-        # 处理图片列表
-        if result.get('review_images'):
-            result['review_images'] = result['review_images'].split(',')
-        else:
-            result['review_images'] = []
-            
-        # 处理数值字段
-        result['order_amount'] = float(result['order_amount'] or 0)
-        
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            'code': 0,
-            'message': 'success',
-            'data': result
-        })
-        
-    except Exception as error:
-        print('Error fetching demand detail:', str(error))
-        return jsonify({
-            'code': 1,
-            'message': str(error)
-        }), 500
-
-# 更新测评明细
-@app.route('/api/demand-details/<int:detail_id>', methods=['PUT'])
-def update_demand_detail(detail_id):
-    try:
-        data = request.json
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # 检查明细是否存在
-        cursor.execute('SELECT detail_id FROM demand_details WHERE detail_id = %s', (detail_id,))
-        if not cursor.fetchone():
-            return jsonify({
-                'code': 1,
-                'message': '明细不存在'
-            }), 404
         
         # 处理图片列表
         if isinstance(data.get('review_images'), list):
-            data['review_images'] = ','.join(data['review_images'])
-            
+            data['review_images'] = ','.join([str(img) for img in data['review_images'] if img])
+
         # 处理日期时间格式
         if data.get('order_time'):
             try:
-                # 将时间字符串转换为datetime对象，然后格式化为MySQL格式
                 order_time = datetime.strptime(data['order_time'], '%a, %d %b %Y %H:%M:%S GMT')
                 data['order_time'] = order_time.strftime('%Y-%m-%d %H:%M:%S')
             except Exception as e:
@@ -1732,46 +1519,78 @@ def update_demand_detail(detail_id):
             except Exception as e:
                 print(f"Error parsing review_time: {e}")
         
-        # 构建更新语句
-        update_fields = []
-        update_values = {}
-        
-        # 只更新允许的字段
-        allowed_fields = [
-            'order_number', 'order_amount', 'order_time',
-            'review_content', 'review_time', 'review_images', 'review_video',
-            'payment_screenshot', 'order_screenshot', 'review_screenshot',
-            'status', 'remark'
-        ]
-        
-        for key in allowed_fields:
-            if key in data:
-                update_fields.append(f'{key} = %({key})s')
-                update_values[key] = data[key]
-                
-        update_values['detail_id'] = detail_id
-        
-        if not update_fields:
+        # 检查需求是否存在
+        cursor.execute("SELECT demand_id FROM demands WHERE demand_id = %s", (demand_id,))
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
             return jsonify({
                 'code': 1,
-                'message': '没有需要更新的字段'
-            }), 400
+                'message': '需求不存在'
+            }), 404
+            
+        # 准备插入字段
+        fields = [field for field in data.keys()]
+        placeholders = ', '.join(['%s'] * len(fields))
+        values = [data[field] for field in fields]
         
-        # 打印更新数据用于调试
-        print("Update values:", update_values)
+        # 添加需求ID
+        fields.append('demand_id')
+        values.append(demand_id)
         
-        update_query = f'''
-            UPDATE demand_details 
-            SET {', '.join(update_fields)}
-            WHERE detail_id = %(detail_id)s
-        '''
+        # 准备order_id字段
+        order_id = None
         
-        cursor.execute(update_query, update_values)
+        # 如果提供了中介ID，查找或创建订单
+        if agent_id:
+            # 查找该需求下该中介的订单
+            cursor.execute("""
+                SELECT order_id FROM orders 
+                WHERE demand_id = %s AND agent_id = %s
+            """, (demand_id, agent_id))
+            
+            order_result = cursor.fetchone()
+            
+            if order_result:
+                # 使用现有订单
+                order_id = order_result['order_id']
+            else:
+                # 创建新订单
+                order_number = f"ORD-{demand_id}-{agent_id}-{int(time.time())}"
+                cursor.execute("""
+                    INSERT INTO orders (demand_id, agent_id, order_number, target_count, actual_count, status)
+                    VALUES (%s, %s, %s, 1, 0, 1)
+                """, (demand_id, agent_id, order_number))
+                order_id = cursor.lastrowid
         
-        # 获取更新后的数据
+        # 如果找到或创建了订单，添加到字段中
+        if order_id:
+            fields.append('order_id')
+            values.append(order_id)
+        
+        # 构建INSERT语句
+        insert_query = f"""
+            INSERT INTO demand_details ({', '.join(fields)})
+            VALUES ({', '.join(['%s'] * len(values))})
+        """
+        
+        cursor.execute(insert_query, values)
+        detail_id = cursor.lastrowid
+        
+        # 如果关联了订单，增加实际完成数量
+        if order_id:
+            cursor.execute("""
+                UPDATE orders 
+                SET actual_count = actual_count + 1 
+                WHERE order_id = %s
+            """, (order_id,))
+        
+        # 获取创建的详情
         cursor.execute('''
-            SELECT dd.*
+            SELECT dd.*, a.agent_id, a.agent_name
             FROM demand_details dd
+            LEFT JOIN orders o ON dd.order_id = o.order_id
+            LEFT JOIN agents a ON o.agent_id = a.agent_id
             WHERE dd.detail_id = %s
         ''', (detail_id,))
         
@@ -1788,12 +1607,275 @@ def update_demand_detail(detail_id):
             result['order_amount'] = float(result['order_amount'])
         
         conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'code': 0,
+            'message': '明细创建成功',
+            'data': result
+        })
+    except Exception as e:
+        print('Error creating demand detail:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+# 获取需求明细列表
+@app.route('/api/demands/<int:demand_id>/details', methods=['GET'])
+def get_demand_details(demand_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 检查需求是否存在
+        cursor.execute("SELECT demand_id FROM demands WHERE demand_id = %s", (demand_id,))
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'code': 1,
+                'message': '需求不存在'
+            }), 404
+            
+        # 获取需求明细，包含中介信息
+        query = """
+            SELECT d.*, a.agent_id, a.agent_name, ds.status_name
+            FROM demand_details d
+            LEFT JOIN orders o ON d.order_id = o.order_id
+            LEFT JOIN agents a ON o.agent_id = a.agent_id
+            LEFT JOIN demand_status ds ON d.status = ds.status_id
+            WHERE d.demand_id = %s
+            ORDER BY d.detail_id DESC
+        """
+        cursor.execute(query, (demand_id,))
+        details = cursor.fetchall()
+        
+        # 处理每个明细的图片和数值
+        for detail in details:
+            # 处理图片列表
+            if detail.get('review_images'):
+                detail['review_images'] = detail['review_images'].split(',')
+            else:
+                detail['review_images'] = []
+                
+            # 处理数值字段
+            if detail.get('order_amount'):
+                detail['order_amount'] = float(detail['order_amount'] or 0)
+        
         cursor.close()
         conn.close()
         
         return jsonify({
             'code': 0,
             'message': 'success',
+            'data': details
+        })
+    except Exception as e:
+        print('Error getting demand details:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+# 获取单个测评明细
+@app.route('/api/demand-details/<int:detail_id>', methods=['GET'])
+def get_demand_detail(detail_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 查询包含中介信息的明细详情
+        cursor.execute('''
+            SELECT dd.*, a.agent_id, a.agent_name, ds.status_name
+            FROM demand_details dd
+            LEFT JOIN orders o ON dd.order_id = o.order_id
+            LEFT JOIN agents a ON o.agent_id = a.agent_id
+            LEFT JOIN demand_status ds ON dd.status = ds.status_id
+            WHERE dd.detail_id = %s
+        ''', (detail_id,))
+        
+        result = cursor.fetchone()
+        
+        if not result:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'code': 1,
+                'message': '明细不存在'
+            }), 404
+            
+        # 处理返回数据中的图片列表
+        if result.get('review_images'):
+            result['review_images'] = result['review_images'].split(',')
+        else:
+            result['review_images'] = []
+            
+        # 处理数值字段
+        if result.get('order_amount'):
+            result['order_amount'] = float(result['order_amount'])
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'code': 0,
+            'message': 'success',
+            'data': result
+        })
+        
+    except Exception as error:
+        print('Error getting demand detail:', str(error))
+        return jsonify({
+            'code': 1,
+            'message': str(error)
+        }), 500
+
+# 更新测评明细
+@app.route('/api/demand-details/<int:detail_id>', methods=['PUT', 'POST'])
+def update_demand_detail(detail_id):
+    try:
+        data = request.json
+        print("更新明细请求数据:", data)  # 添加调试日志
+        
+        agent_id = data.pop('agent_id', None)  # 从请求数据中提取中介ID
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 检查明细是否存在
+        cursor.execute('SELECT detail_id, demand_id, order_id FROM demand_details WHERE detail_id = %s', (detail_id,))
+        detail = cursor.fetchone()
+        if not detail:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'code': 1,
+                'message': '明细不存在'
+            }), 404
+        
+        demand_id = detail['demand_id']
+        old_order_id = detail['order_id']
+        new_order_id = None
+        
+        # 处理图片列表 (如果存在)
+        if 'review_images' in data and isinstance(data.get('review_images'), list):
+            data['review_images'] = ','.join([str(img) for img in data['review_images'] if img])
+        
+        # 处理中介关联
+        if agent_id is not None:  # 包括agent_id=null的情况
+            if agent_id:  # 如果agent_id有值
+                # 查找该需求下该中介的订单
+                cursor.execute("""
+                    SELECT order_id FROM orders 
+                    WHERE demand_id = %s AND agent_id = %s
+                """, (demand_id, agent_id))
+                
+                order_result = cursor.fetchone()
+                
+                if order_result:
+                    # 使用现有订单
+                    new_order_id = order_result['order_id']
+                else:
+                    # 创建新订单
+                    order_number = f"ORD-{demand_id}-{agent_id}-{int(time.time())}"
+                    cursor.execute("""
+                        INSERT INTO orders (demand_id, agent_id, order_number, target_count, actual_count, status)
+                        VALUES (%s, %s, %s, 1, 0, 1)
+                    """, (demand_id, agent_id, order_number))
+                    new_order_id = cursor.lastrowid
+            else:
+                # agent_id为null时，取消与订单的关联
+                new_order_id = None
+        
+        # 构建更新语句
+        update_fields = []
+        update_values = {}
+        
+        # 更新常规字段
+        for key in data:
+            update_fields.append(f'{key} = %({key})s')
+            update_values[key] = data[key]
+        
+        # 更新order_id
+        if agent_id is not None:  # 只有当提供了agent_id参数时才更新order_id
+            if new_order_id:
+                update_fields.append('order_id = %(order_id)s')
+                update_values['order_id'] = new_order_id
+            else:
+                update_fields.append('order_id = NULL')
+                
+        update_values['detail_id'] = detail_id
+        
+        if not update_fields:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'code': 1,
+                'message': '没有需要更新的字段'
+            }), 400
+        
+        # 打印SQL和参数以便调试
+        update_query = f'''
+            UPDATE demand_details 
+            SET {', '.join(update_fields)}
+            WHERE detail_id = %(detail_id)s
+        '''
+        print("更新SQL:", update_query)
+        print("参数:", update_values)
+        
+        cursor.execute(update_query, update_values)
+        
+        # 处理订单统计
+        if agent_id is not None:  # 只有提供了agent_id参数时才处理订单统计
+            # 减少旧订单的实际完成数量
+            if old_order_id:
+                cursor.execute("""
+                    UPDATE orders 
+                    SET actual_count = GREATEST(actual_count - 1, 0)
+                    WHERE order_id = %s
+                """, (old_order_id,))
+            
+            # 增加新订单的实际完成数量
+            if new_order_id:
+                cursor.execute("""
+                    UPDATE orders 
+                    SET actual_count = actual_count + 1,
+                        completion_rate = (actual_count + 1) / target_count * 100
+                    WHERE order_id = %s
+                """, (new_order_id,))
+        
+        conn.commit()
+        
+        # 获取更新后的数据
+        cursor.execute('''
+            SELECT dd.*, a.agent_id, a.agent_name
+            FROM demand_details dd
+            LEFT JOIN orders o ON dd.order_id = o.order_id
+            LEFT JOIN agents a ON o.agent_id = a.agent_id
+            WHERE dd.detail_id = %s
+        ''', (detail_id,))
+        
+        result = cursor.fetchone()
+        
+        # 处理返回数据中的图片列表
+        if result and result.get('review_images'):
+            result['review_images'] = result['review_images'].split(',')
+        else:
+            result['review_images'] = []
+            
+        # 处理数值字段
+        if result and result.get('order_amount'):
+            result['order_amount'] = float(result['order_amount'])
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'code': 0,
+            'message': '更新成功',
             'data': result
         })
         
@@ -2423,6 +2505,8 @@ def update_demand_by_id(demand_id):  # 修改函数名
         # 检查需求是否存在
         cursor.execute('SELECT status_id FROM demands WHERE demand_id = %s', (demand_id,))
         if not cursor.fetchone():
+            cursor.close()
+            conn.close()
             return jsonify({
                 'code': 1,
                 'message': '需求不存在'
@@ -2666,6 +2750,1001 @@ def create_refund_order():
         }), 500
 
 
+@app.route('/api/demands/<int:id>/pause', methods=['PUT'])
+def pause_demand_api(id):  # 重命名函数
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 更新需求状态为暂停
+        cursor.execute("""
+            UPDATE demands 
+            SET status_id = 3 
+            WHERE demand_id = %s
+        """, (id,))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'code': 0,
+            'message': '需求已暂停'
+        })
+        
+    except Exception as error:
+        print('Error pausing demand:', str(error))
+        return jsonify({
+            'code': 1,
+            'message': str(error)
+        }), 500
+
+
+@app.route('/api/demands/<int:id>/resume', methods=['PUT'])
+def resume_demand_api(id):  # 重命名函数
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 更新需求状态为正常
+        cursor.execute("""
+            UPDATE demands 
+            SET status_id = 1
+            WHERE demand_id = %s
+        """, (id,))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'code': 0,
+            'message': '需求已恢复'
+        })
+        
+    except Exception as error:
+        print('Error resuming demand:', str(error))
+        return jsonify({
+            'code': 1,
+            'message': str(error)
+        }), 500
+
+
+# 中介分配与订单统计功能实现
+
+# 从refund.py导入路由
+from routes.refund import refund_bp
+
+app.register_blueprint(refund_bp)
+
+
+# 直接定义agent相关的路由
+@app.route('/api/agents/available', methods=['GET'])
+def get_all_available_agents():  # 修改函数名
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 确保agents表存在并有数据
+        try:
+            cursor.execute("SHOW TABLES LIKE 'agents'")
+            if not cursor.fetchone():
+                # 如果表不存在，创建它
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS `agents` (
+                      `agent_id` int(11) NOT NULL AUTO_INCREMENT,
+                      `agent_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+                      `contact_info` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+                      `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1-活跃, 0-不活跃',
+                      `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                      `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                      PRIMARY KEY (`agent_id`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                """)
+                
+                # 插入一些测试数据
+                cursor.execute("""
+                    INSERT INTO agents (agent_name, contact_info, status)
+                    VALUES 
+                        ('测试中介1', 'test1@example.com', 1),
+                        ('测试中介2', 'test2@example.com', 1),
+                        ('测试中介3', 'test3@example.com', 1);
+                """)
+                conn.commit()
+        except Exception as e:
+            print("检查/创建agents表时出错:", e)
+        
+        # 获取所有活跃中介
+        query = """
+            SELECT agent_id, agent_name, contact_info, status
+            FROM agents
+            WHERE status = 1
+            ORDER BY agent_name
+        """
+        cursor.execute(query)
+        agents = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'code': 0,
+            'message': 'success',
+            'data': agents
+        })
+    except Exception as e:
+        print('Error getting available agents:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+# 需求关联的中介及订单统计 - 确保名称唯一
+@app.route('/api/demands/<int:demand_id>/agents', methods=['GET'])
+def get_demand_agents(demand_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        query = """
+            SELECT 
+                a.agent_id,
+                a.agent_name,
+                a.contact_info,
+                o.order_id,
+                o.order_number,
+                o.target_count,
+                o.actual_count,
+                o.completion_rate,
+                o.status
+            FROM agents a
+            INNER JOIN orders o ON a.agent_id = o.agent_id 
+            WHERE o.demand_id = %s
+            ORDER BY a.agent_name
+        """
+        cursor.execute(query, (demand_id,))
+        agents = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'code': 0,
+            'message': 'success',
+            'data': agents
+        })
+    except Exception as e:
+        print('Error getting demand agents:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+
+# 分配中介
+@app.route('/api/demands/<int:demand_id>/agents', methods=['POST'])
+def assign_agent(demand_id):
+    try:
+        data = request.json
+        agent_id = data.get('agent_id')
+        target_count = data.get('target_count', 0)
+
+        if not agent_id:
+            return jsonify({
+                'code': 1,
+                'message': '请提供中介ID'
+            }), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 检查需求是否存在
+        cursor.execute("SELECT demand_id FROM demands WHERE demand_id = %s", (demand_id,))
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'code': 1,
+                'message': '需求不存在'
+            }), 404
+
+        # 检查中介是否存在
+        cursor.execute("SELECT agent_id FROM agents WHERE agent_id = %s", (agent_id,))
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'code': 1,
+                'message': '中介不存在'
+            }), 404
+
+        # 检查是否已经分配过该中介
+        cursor.execute(
+            "SELECT order_id FROM orders WHERE demand_id = %s AND agent_id = %s",
+            (demand_id, agent_id)
+        )
+        if cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'code': 1,
+                'message': '该中介已经分配过'
+            }), 400
+
+        # 生成订单号
+        order_number = f"ORD-{demand_id}-{agent_id}-{int(time.time())}"
+
+        # 创建订单
+        insert_query = """
+            INSERT INTO orders (demand_id, agent_id, order_number, target_count, actual_count, status)
+            VALUES (%s, %s, %s, %s, 0, 1)
+        """
+        cursor.execute(insert_query, (demand_id, agent_id, order_number, target_count))
+
+        conn.commit()
+        order_id = cursor.lastrowid
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'code': 0,
+            'message': '中介分配成功',
+            'data': {
+                'order_id': order_id,
+                'order_number': order_number
+            }
+        })
+    except Exception as e:
+        print('Error assigning agent:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+
+# 移除中介
+@app.route('/api/demands/<int:demand_id>/agents/<int:agent_id>', methods=['DELETE'])
+def remove_agent(demand_id, agent_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 删除订单记录
+        delete_query = """
+            DELETE FROM orders
+            WHERE demand_id = %s AND agent_id = %s
+        """
+        cursor.execute(delete_query, (demand_id, agent_id))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'code': 0,
+            'message': '中介移除成功'
+        })
+    except Exception as e:
+        print('Error removing agent:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+
+# 更新订单
+@app.route('/api/orders/<int:order_id>', methods=['PUT'])
+def update_order(order_id):
+    try:
+        data = request.json
+        target_count = data.get('target_count')
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        update_query = """
+            UPDATE orders
+            SET target_count = %s
+            WHERE order_id = %s
+        """
+        cursor.execute(update_query, (target_count, order_id))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'code': 0,
+            'message': '订单更新成功'
+        })
+    except Exception as e:
+        print('Error updating order:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+
+# 获取中介的订单详情
+@app.route('/api/demands/<int:demand_id>/agents/<int:agent_id>/orders', methods=['GET'])
+def get_agent_orders(demand_id, agent_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT 
+                o.order_id,
+                o.order_number,
+                o.target_count,
+                o.actual_count,
+                o.completion_rate,
+                o.status,
+                o.created_at
+            FROM orders o
+            WHERE o.demand_id = %s AND o.agent_id = %s
+        """
+        cursor.execute(query, (demand_id, agent_id))
+        orders = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'code': 0,
+            'message': 'success',
+            'data': orders
+        })
+    except Exception as e:
+        print('Error getting agent orders:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+
+# 创建订单明细
+@app.route('/api/orders', methods=['POST'])
+def create_order_detail():
+    try:
+        data = request.json
+        order_id = data.get('order_id')
+        order_number = data.get('order_number')
+
+        if not order_id or not order_number:
+            return jsonify({
+                'code': 1,
+                'message': '请提供订单ID和订单号'
+            }), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 获取订单信息
+        cursor.execute(
+            "SELECT order_id, demand_id, agent_id, target_count, actual_count FROM orders WHERE order_id = %s",
+            (order_id,))
+        order = cursor.fetchone()
+
+        if not order:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'code': 1,
+                'message': '订单不存在'
+            }), 404
+
+        # 创建订单明细
+        insert_query = """
+            INSERT INTO order_details (order_id, order_number, status)
+            VALUES (%s, %s, 1)
+        """
+        cursor.execute(insert_query, (order_id, order_number))
+
+        # 更新订单的实际完成数量
+        new_actual_count = order['actual_count'] + 1
+
+        update_query = """
+            UPDATE orders
+            SET actual_count = %s
+            WHERE order_id = %s
+        """
+        cursor.execute(update_query, (new_actual_count, order_id))
+
+        conn.commit()
+
+        detail_id = cursor.lastrowid
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'code': 0,
+            'message': '订单创建成功',
+            'data': {
+                'detail_id': detail_id,
+                'actual_count': new_actual_count,
+                'target_count': order['target_count'],
+                'completion_rate': (new_actual_count / order['target_count'] * 100) if order['target_count'] > 0 else 0
+            }
+        })
+    except Exception as e:
+        print('Error creating order detail:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+
+# 获取需求的所有相关中介
+@app.route('/api/demands/<int:demand_id>/available-agents', methods=['GET'])
+def get_demand_available_agents(demand_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 获取所有已分配给该需求的中介
+        query = """
+            SELECT DISTINCT a.agent_id, a.agent_name, a.contact_info
+            FROM agents a
+            JOIN orders o ON a.agent_id = o.agent_id
+            WHERE o.demand_id = %s AND a.status = 1
+            ORDER BY a.agent_name
+        """
+        cursor.execute(query, (demand_id,))
+        agents = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'code': 0,
+            'message': 'success',
+            'data': agents
+        })
+    except Exception as e:
+        print('Error getting demand available agents:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+
+# 修改API路径，避免与现有路由冲突
+@app.route('/api/detail-agent-assign/<int:detail_id>', methods=['POST'])
+def assign_agent_to_detail(detail_id):
+    try:
+        data = request.json
+        print(f"分配中介请求数据: {data}, 明细ID: {detail_id}")
+        
+        agent_id = data.get('agent_id')
+        
+        if agent_id is None:
+            return jsonify({
+                'code': 1,
+                'message': '请提供中介ID'
+            }), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 检查明细是否存在
+        cursor.execute('SELECT detail_id, demand_id, order_id FROM demand_details WHERE detail_id = %s', (detail_id,))
+        detail = cursor.fetchone()
+        
+        if not detail:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'code': 1,
+                'message': '明细不存在'
+            }), 404
+        
+        demand_id = detail['demand_id']
+        old_order_id = detail['order_id']
+        
+        print(f"明细信息: demand_id={demand_id}, old_order_id={old_order_id}")
+        
+        # 处理中介关联 - 查找或创建订单
+        new_order_id = None
+        if agent_id:
+            # 先检查中介是否存在
+            cursor.execute('SELECT agent_id FROM agents WHERE agent_id = %s', (agent_id,))
+            agent = cursor.fetchone()
+            
+            if not agent:
+                print(f"中介不存在: {agent_id}")
+                # 尝试从accounts表查找
+                try:
+                    cursor.execute('SELECT id FROM accounts WHERE id = %s AND (role = "intermediary" OR account_type = "intermediary")', (agent_id,))
+                    if not cursor.fetchone():
+                        cursor.close()
+                        conn.close()
+                        return jsonify({
+                            'code': 1,
+                            'message': '指定的中介不存在'
+                        }), 404
+                    # 如果account存在但agent不存在，创建一个agent记录
+                    cursor.execute('SELECT name, username FROM accounts WHERE id = %s', (agent_id,))
+                    account = cursor.fetchone()
+                    agent_name = account.get('name') or account.get('username') or f"中介{agent_id}"
+                    
+                    cursor.execute("""
+                        INSERT INTO agents (agent_id, agent_name, status)
+                        VALUES (%s, %s, 1)
+                    """, (agent_id, agent_name))
+                    print(f"已创建中介记录: agent_id={agent_id}, agent_name={agent_name}")
+                except Exception as e:
+                    print(f"检查/创建中介时出错: {e}")
+            
+            # 查找该需求下该中介的订单
+            cursor.execute("""
+                SELECT order_id FROM orders 
+                WHERE demand_id = %s AND agent_id = %s
+            """, (demand_id, agent_id))
+            
+            order_result = cursor.fetchone()
+            
+            if order_result:
+                # 使用现有订单
+                new_order_id = order_result['order_id']
+                print(f"使用现有订单: order_id={new_order_id}")
+            else:
+                # 创建新订单
+                try:
+                    order_number = f"ORD-{demand_id}-{agent_id}-{int(time.time())}"
+                    cursor.execute("""
+                        INSERT INTO orders (demand_id, agent_id, order_number, target_count, actual_count, status)
+                        VALUES (%s, %s, %s, 1, 0, 1)
+                    """, (demand_id, agent_id, order_number))
+                    new_order_id = cursor.lastrowid
+                    print(f"创建新订单: order_id={new_order_id}, order_number={order_number}")
+                except Exception as e:
+                    print(f"创建订单失败: {e}")
+                    # 查看订单表结构和约束
+                    cursor.execute("DESCRIBE orders")
+                    columns = cursor.fetchall()
+                    print(f"订单表结构: {columns}")
+        
+        # 更新明细关联的订单
+        print(f"更新明细订单关联: detail_id={detail_id}, new_order_id={new_order_id}")
+        cursor.execute("""
+            UPDATE demand_details 
+            SET order_id = %s
+            WHERE detail_id = %s
+        """, (new_order_id, detail_id))
+        
+        # 处理订单统计
+        # 减少旧订单的实际完成数量
+        if old_order_id:
+            try:
+                cursor.execute("""
+                    UPDATE orders 
+                    SET actual_count = GREATEST(actual_count - 1, 0)
+                    WHERE order_id = %s
+                """, (old_order_id,))
+                print(f"更新旧订单计数: order_id={old_order_id}")
+                
+                # 更新完成率
+                cursor.execute("""
+                    UPDATE orders 
+                    SET completion_rate = (actual_count / NULLIF(target_count, 0)) * 100
+                    WHERE order_id = %s
+                """, (old_order_id,))
+            except Exception as e:
+                print(f"更新旧订单失败: {e}")
+        
+        # 增加新订单的实际完成数量
+        if new_order_id:
+            try:
+                cursor.execute("""
+                    UPDATE orders 
+                    SET actual_count = actual_count + 1
+                    WHERE order_id = %s
+                """, (new_order_id,))
+                print(f"更新新订单计数: order_id={new_order_id}")
+                
+                # 更新完成率
+                cursor.execute("""
+                    UPDATE orders 
+                    SET completion_rate = (actual_count / NULLIF(target_count, 0)) * 100
+                    WHERE order_id = %s
+                """, (new_order_id,))
+            except Exception as e:
+                print(f"更新新订单失败: {e}")
+        
+        conn.commit()
+        
+        # 获取更新后的数据
+        cursor.execute('''
+            SELECT dd.*, a.agent_id, a.agent_name, ds.status_name
+            FROM demand_details dd
+            LEFT JOIN orders o ON dd.order_id = o.order_id
+            LEFT JOIN agents a ON o.agent_id = a.agent_id
+            LEFT JOIN demand_status ds ON dd.status = ds.status_id
+            WHERE dd.detail_id = %s
+        ''', (detail_id,))
+        
+        result = cursor.fetchone()
+        print(f"更新后的明细数据: {result}")
+        
+        # 处理返回数据中的图片列表
+        if result and result.get('review_images'):
+            result['review_images'] = result['review_images'].split(',')
+        else:
+            result['review_images'] = []
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'code': 0,
+            'message': '中介分配成功',
+            'data': result
+        })
+        
+    except Exception as error:
+        print('分配中介失败:', str(error))
+        return jsonify({
+            'code': 1,
+            'message': str(error)
+        }), 500
+
+
+# 添加测试路由来确认API服务正常
+@app.route('/api/test', methods=['GET', 'POST'])
+def test_api():
+    return jsonify({
+        'code': 0,
+        'message': 'API服务正常',
+        'method': request.method,
+        'timestamp': time.time()
+    })
+
+
+# 检查API是否正常工作的测试路由
+@app.route('/api/check-apis', methods=['GET'])
+def check_apis():
+    # 列出所有可用的路由
+    rules = []
+    for rule in app.url_map.iter_rules():
+        rules.append({
+            'endpoint': rule.endpoint,
+            'methods': list(rule.methods),
+            'path': str(rule)
+        })
+
+    return jsonify({
+        'code': 0,
+        'message': 'API检查',
+        'data': {
+            'total_routes': len(rules),
+            'routes': rules
+        }
+    })
+
+
+# 从accounts表获取中介用户
+@app.route('/api/accounts/intermediaries', methods=['GET'])
+def get_account_intermediaries():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 检查accounts表结构
+        try:
+            cursor.execute("DESCRIBE accounts")
+            columns = [column['Field'] for column in cursor.fetchall()]
+            print("账户表结构:", columns)
+        except Exception as e:
+            print("查询表结构出错:", e)
+
+        # 根据实际的accounts表结构调整查询
+        # 假设accounts表有id/account_id, name/account_name/username, role/type等字段
+        try:
+            query = """
+                SELECT * FROM accounts
+                WHERE role = 'intermediary' OR type = 'intermediary' OR user_type = 'intermediary'
+                ORDER BY name
+            """
+            cursor.execute(query)
+            intermediaries = cursor.fetchall()
+            print(f"找到 {len(intermediaries)} 个中介账户")
+        except Exception as e:
+            print("查询中介账户出错:", e)
+            # 尝试备用查询
+            try:
+                query = """
+                    SELECT * FROM accounts
+                    WHERE account_type = 'intermediary'
+                    ORDER BY account_name
+                """
+                cursor.execute(query)
+                intermediaries = cursor.fetchall()
+                print(f"备用查询找到 {len(intermediaries)} 个中介账户")
+            except Exception as e2:
+                print("备用查询也失败:", e2)
+                intermediaries = []
+
+        cursor.close()
+        conn.close()
+
+        # 如果是空列表，尝试从agents表获取
+        if not intermediaries:
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT agent_id as id, agent_name as name, contact_info as contact, status
+                    FROM agents
+                    WHERE status = 1
+                """)
+                intermediaries = cursor.fetchall()
+                cursor.close()
+                conn.close()
+                print(f"从agents表找到 {len(intermediaries)} 个中介")
+            except Exception as e:
+                print("从agents表获取中介失败:", e)
+
+        return jsonify({
+            'code': 0,
+            'message': 'success',
+            'data': intermediaries
+        })
+    except Exception as e:
+        print('获取中介账户失败:', str(e))
+        return jsonify({
+            'code': 1,
+            'message': str(e)
+        }), 500
+
+
+# 添加路由处理器来处理直接请求到 /api/demand-details 的POST请求
+# 修复路由处理函数，解决日期解析和字段重复问题
+@app.route('/api/demand-details', methods=['POST'])
+def create_generic_demand_detail():
+    """处理直接POST到/api/demand-details的请求"""
+    try:
+        data = request.json
+        print("收到创建明细请求数据:", data)
+
+        demand_id = data.get('demand_id')
+        if not demand_id:
+            return jsonify({
+                'code': 1,
+                'message': '需求ID缺失，无法创建明细'
+            }), 400
+
+        # 复制一份数据，避免修改原始请求数据
+        detail_data = data.copy()
+
+        # 处理日期时间格式 - 使用更灵活的方式处理日期
+        if detail_data.get('order_time'):
+            try:
+                # 尝试直接使用传入的日期格式（通常是ISO格式）
+                if isinstance(detail_data['order_time'], str):
+                    # 判断是否已经是MySQL格式 (YYYY-MM-DD HH:MM:SS)
+                    if re.match(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', detail_data['order_time']):
+                        pass  # 已经是正确格式，不需要转换
+                    else:
+                        # 尝试按照常见格式解析
+                        try:
+                            # 尝试ISO格式 (前端通常发送这种格式)
+                            date_obj = datetime.fromisoformat(detail_data['order_time'].replace('Z', '+00:00'))
+                            detail_data['order_time'] = date_obj.strftime('%Y-%m-%d %H:%M:%S')
+                        except:
+                            try:
+                                # 尝试HTTP日期格式
+                                date_obj = datetime.strptime(detail_data['order_time'], '%a, %d %b %Y %H:%M:%S GMT')
+                                detail_data['order_time'] = date_obj.strftime('%Y-%m-%d %H:%M:%S')
+                            except:
+                                # 如果都失败，使用当前时间
+                                detail_data['order_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            except Exception as e:
+                print(f"处理order_time出错: {e}")
+                detail_data['order_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        if detail_data.get('review_time'):
+            try:
+                if isinstance(detail_data['review_time'], str):
+                    if re.match(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', detail_data['review_time']):
+                        pass  # 已经是正确格式
+                    else:
+                        try:
+                            # 尝试ISO格式
+                            date_obj = datetime.fromisoformat(detail_data['review_time'].replace('Z', '+00:00'))
+                            detail_data['review_time'] = date_obj.strftime('%Y-%m-%d %H:%M:%S')
+                        except:
+                            try:
+                                # 尝试HTTP日期格式
+                                date_obj = datetime.strptime(detail_data['review_time'], '%a, %d %b %Y %H:%M:%S GMT')
+                                detail_data['review_time'] = date_obj.strftime('%Y-%m-%d %H:%M:%S')
+                            except:
+                                detail_data['review_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            except Exception as e:
+                print(f"处理review_time出错: {e}")
+                detail_data['review_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # 处理图片列表
+        if isinstance(detail_data.get('review_images'), list):
+            detail_data['review_images'] = ','.join([str(img) for img in detail_data['review_images'] if img])
+
+        # 连接数据库
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 检查需求是否存在
+        cursor.execute("SELECT demand_id FROM demands WHERE demand_id = %s", (demand_id,))
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'code': 1,
+                'message': '需求不存在'
+            }), 404
+
+        # 从数据中提取agent_id并移除，避免SQL错误
+        agent_id = detail_data.pop('agent_id', None)
+
+        # 准备插入字段和值，确保demand_id不重复
+        # 先移除可能存在的demand_id，稍后再添加
+        if 'demand_id' in detail_data:
+            detail_data.pop('demand_id')
+
+        # 构建字段列表和值列表
+        fields = list(detail_data.keys())
+        values = [detail_data[field] for field in fields]
+
+        # 添加demand_id
+        fields.append('demand_id')
+        values.append(demand_id)
+
+        # 处理中介关联
+        order_id = None
+        if agent_id:
+            # 查找该需求下该中介的订单
+            cursor.execute("""
+                SELECT order_id FROM orders 
+                WHERE demand_id = %s AND agent_id = %s
+            """, (demand_id, agent_id))
+
+            order_result = cursor.fetchone()
+
+            if order_result:
+                # 使用现有订单
+                order_id = order_result['order_id']
+            else:
+                # 创建新订单
+                order_number = f"ORD-{demand_id}-{agent_id}-{int(time.time())}"
+                cursor.execute("""
+                    INSERT INTO orders (demand_id, agent_id, order_number, target_count, actual_count, status)
+                    VALUES (%s, %s, %s, 1, 0, 1)
+                """, (demand_id, agent_id, order_number))
+                order_id = cursor.lastrowid
+
+        # 如果关联了订单，添加order_id字段
+        if order_id:
+            fields.append('order_id')
+            values.append(order_id)
+
+        # 构建INSERT语句
+        placeholders = ', '.join(['%s'] * len(values))
+        insert_query = f"""
+            INSERT INTO demand_details ({', '.join(fields)})
+            VALUES ({placeholders})
+        """
+
+        print("执行SQL:", insert_query)
+        print("SQL参数:", values)
+
+        cursor.execute(insert_query, values)
+        detail_id = cursor.lastrowid
+
+        # 如果关联了订单，更新订单统计
+        if order_id:
+            cursor.execute("""
+                UPDATE orders 
+                SET actual_count = actual_count + 1,
+                    completion_rate = (actual_count + 1) / target_count * 100
+                WHERE order_id = %s
+            """, (order_id,))
+
+        # 获取创建的详情
+        cursor.execute('''
+            SELECT dd.*, a.agent_id, a.agent_name, ds.status_name
+            FROM demand_details dd
+            LEFT JOIN orders o ON dd.order_id = o.order_id
+            LEFT JOIN agents a ON o.agent_id = a.agent_id
+            LEFT JOIN demand_status ds ON dd.status = ds.status_id
+            WHERE dd.detail_id = %s
+        ''', (detail_id,))
+
+        result = cursor.fetchone()
+
+        # 处理返回数据中的图片列表
+        if result and result.get('review_images'):
+            result['review_images'] = result['review_images'].split(',')
+        else:
+            result['review_images'] = []
+
+        # 处理数值字段
+        if result and result.get('order_amount'):
+            result['order_amount'] = float(result['order_amount'])
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'code': 0,
+            'message': '创建成功',
+            'data': result
+        })
+
+    except Exception as error:
+        print('Error creating demand detail:', str(error))
+        return jsonify({
+            'code': 1,
+            'message': str(error)
+        }), 500
+# 添加调试端点，记录所有请求
+@app.route('/api/debug', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def debug_api():
+    print(f"收到 {request.method} 请求: {request.url}")
+    print(f"请求数据: {request.get_data(as_text=True)}")
+    print(f"请求头: {dict(request.headers)}")
+
+    return jsonify({
+        'code': 0,
+        'message': '调试信息已记录',
+        'data': {
+            'method': request.method,
+            'url': request.url,
+            'headers': dict(request.headers),
+            'data': request.get_json(silent=True)
+        }
+    })
+
+# 添加帮助函数检查表结构
+@app.route('/api/check-table/<table_name>', methods=['GET'])
+def check_table_structure(table_name):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 获取表结构
+        cursor.execute(f"DESCRIBE {table_name}")
+        columns = cursor.fetchall()
+        
+        # 获取表数据示例
+        cursor.execute(f"SELECT * FROM {table_name} LIMIT 1")
+        sample = cursor.fetchone()
+        
+        # 获取表行数
+        cursor.execute(f"SELECT COUNT(*) as count FROM {table_name}")
+        count = cursor.fetchone()['count']
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'code': 0,
+            'message': f'表 {table_name} 结构检查',
+            'data': {
+                'columns': columns,
+                'sample': sample,
+                'count': count
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'code': 1,
+            'message': f'检查表 {table_name} 失败: {str(e)}'
+        }), 500
+
 # 启动服务器
 if __name__ == '__main__':
     try:
@@ -2676,9 +3755,7 @@ if __name__ == '__main__':
         # 检查目录权限
         if not os.access(app.config['UPLOAD_FOLDER'], os.W_OK):
             print('Warning: Upload directory is not writable')
-        
-        # 注册蓝图
-        app.register_blueprint(refund_bp)
+
         
         # 启动应用
         app.run(host='0.0.0.0', port=5000, debug=True)
@@ -2686,62 +3763,4 @@ if __name__ == '__main__':
         print('Server startup failed:', str(error))
         exit(1) 
 
-@app.route('/api/demands/<int:id>/pause', methods=['PUT'])
-def pause_demand(id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # 更新需求状态为暂停
-        cursor.execute("""
-            UPDATE demands 
-            SET status_id = 3 
-            WHERE demand_id = %s
-        """, (id,))
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            'code': 0,
-
-            'message': 'success'
-        })
-        
-    except Exception as error:
-        print('Error pausing demand:', str(error))
-        return jsonify({
-            'code': 1,
-            'message': str(error)
-        }), 500
-
-@app.route('/api/demands/<int:id>/resume', methods=['PUT'])
-def resume_demand(id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # 更新需求状态为进行中
-        cursor.execute("""
-            UPDATE demands 
-            SET status_id = 2 
-            WHERE demand_id = %s
-        """, (id,))
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            'code': 0,
-            'message': 'success'
-        })
-        
-    except Exception as error:
-        print('Error resuming demand:', str(error))
-        return jsonify({
-            'code': 1,
-            'message': str(error)
-        }), 500
 

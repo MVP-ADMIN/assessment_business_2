@@ -1,9 +1,9 @@
 import mysql.connector
 from mysql.connector import pooling
 
-# 数据库配置
+# 修改数据库配置
 db_config = {
-    'host': '192.168.1.20',
+    'host': 'localhost',  # 尝试使用localhost或127.0.0.1替代IP地址
     'port': 3307,
     'user': 'test',
     'password': 'test',
