@@ -3,7 +3,7 @@ from mysql.connector import pooling
 
 # 数据库配置
 db_config = {
-    'host': 'localhost',
+    'host': '192.168.1.20',
     'port': 3307,
     'user': 'test',
     'password': 'test',

@@ -11,7 +11,7 @@
  Target Server Version : 50744
  File Encoding         : 65001
 
- Date: 14/02/2025 11:57:37
+ Date: 27/02/2025 10:15:39
 */
 
 SET NAMES utf8mb4;
@@ -107,7 +107,7 @@ CREATE TABLE `change_logs`  (
   CONSTRAINT `change_logs_ibfk_1` FOREIGN KEY (`demand_id`) REFERENCES `demands` (`demand_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `change_logs_ibfk_2` FOREIGN KEY (`old_status_id`) REFERENCES `demand_status` (`status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `change_logs_ibfk_3` FOREIGN KEY (`new_status_id`) REFERENCES `demand_status` (`status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of change_logs
@@ -125,6 +125,9 @@ INSERT INTO `change_logs` VALUES (10, 2, '2025-02-13 15:09:26', '继续执行原
 INSERT INTO `change_logs` VALUES (11, 2, '2025-02-13 15:24:38', '暂停原因: 12312', 1, 2);
 INSERT INTO `change_logs` VALUES (12, 3, '2025-02-13 17:08:19', '继续执行原因: 1', 2, 1);
 INSERT INTO `change_logs` VALUES (13, 5, '2025-02-13 18:51:51', '暂停原因: 123123', 1, 2);
+INSERT INTO `change_logs` VALUES (14, 3, '2025-02-14 14:46:31', '暂停原因: {\'reason\': \'12312\'}', 1, 2);
+INSERT INTO `change_logs` VALUES (15, 4, '2025-02-14 15:10:14', '暂停原因: 1231', 1, 2);
+INSERT INTO `change_logs` VALUES (16, 4, '2025-02-14 15:10:20', '继续执行原因: 213123', 2, 1);
 
 -- ----------------------------
 -- Table structure for countries
@@ -170,7 +173,7 @@ CREATE TABLE `demand_details`  (
   PRIMARY KEY (`detail_id`) USING BTREE,
   INDEX `demand_id`(`demand_id`) USING BTREE,
   CONSTRAINT `demand_details_ibfk_1` FOREIGN KEY (`demand_id`) REFERENCES `demands` (`demand_id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of demand_details
@@ -184,6 +187,10 @@ INSERT INTO `demand_details` VALUES (6, 2, '11000', 1100.00, '2025-02-13 11:14:3
 INSERT INTO `demand_details` VALUES (7, 2, '123123100010', 11000.00, '2025-02-13 11:17:53', '', NULL, NULL, NULL, '/uploads/20250213111810_c3d5e180-9123-4474-92ac-e9ec0e23ebc2.png', '/uploads/20250213111756_4A25F286-7F0E-4589-B214-AA996E97ABF7.png', NULL, 2, NULL, '2025-02-13 11:18:23', '2025-02-13 11:18:23');
 INSERT INTO `demand_details` VALUES (8, 3, '123123123123', 1111.00, '2025-02-13 15:00:29', '', NULL, NULL, NULL, '/uploads/20250213150039_fe2a03ef-9123-4d65-b131-b31a1373da69.png', '/uploads/20250213150033_FC3EEFA6-14D8-4afb-B862-328CF5694D76.png', NULL, 3, NULL, '2025-02-13 15:00:43', '2025-02-13 15:00:43');
 INSERT INTO `demand_details` VALUES (9, 4, '1231231', 111.00, '2025-02-13 18:50:09', '', NULL, NULL, NULL, '/uploads/20250213185017_Untitled_1.png', '/uploads/20250213185013_1200x1200_1_6fd956f0aef8440c8d6b11f63ad22ae9.jpg', NULL, 1, NULL, '2025-02-13 18:50:21', '2025-02-13 18:50:21');
+INSERT INTO `demand_details` VALUES (10, 4, '12312312123412543', 111.00, '2025-02-14 15:22:05', '', NULL, NULL, NULL, '/uploads/20250214152214_81c34adb-9f46-415a-87e1-e7102018640b.png', '/uploads/20250214152207_fe2a03ef-9123-4d65-b131-b31a1373da69.png', NULL, 3, NULL, '2025-02-14 15:22:19', '2025-02-14 15:22:19');
+INSERT INTO `demand_details` VALUES (11, 2, '1231231231267567', 110.00, '2025-02-14 16:11:49', '', NULL, NULL, NULL, '/uploads/20250214161203_81c34adb-9f46-415a-87e1-e7102018640b.png', '/uploads/20250214161159_4A25F286-7F0E-4589-B214-AA996E97ABF7.png', NULL, 3, NULL, '2025-02-14 16:12:06', '2025-02-14 16:12:06');
+INSERT INTO `demand_details` VALUES (12, 5, '12312412412', 123123.00, '2025-02-14 16:28:54', '', NULL, NULL, NULL, '/uploads/20250214162902_Rice_Field_Acoustic_Acrylic_Lamps_10-2-1-1-1-1-1.jpg', '/uploads/20250214162856_9EAA2141-4A49-4204-AB32-17B908520CBA.png', NULL, 1, NULL, '2025-02-14 16:29:05', '2025-02-14 16:29:05');
+INSERT INTO `demand_details` VALUES (13, 4, '3333', 0.01, '2025-02-05 00:00:00', '', NULL, NULL, NULL, '/uploads/20250226145825_61ZGKyyOtwL._AC_SL1500_.jpg', '/uploads/20250226145823_12.jpg', NULL, 1, NULL, '2025-02-26 14:58:34', '2025-02-26 14:58:34');
 
 -- ----------------------------
 -- Table structure for demand_images
@@ -335,16 +342,18 @@ CREATE TABLE `demands`  (
   CONSTRAINT `demands_ibfk_7` FOREIGN KEY (`store_id`) REFERENCES `stores` (`store_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `demands_ibfk_8` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`account_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `demands_ibfk_9` FOREIGN KEY (`method_id`) REFERENCES `search_methods` (`method_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of demands
 -- ----------------------------
 INSERT INTO `demands` VALUES (1, '1231231231', '23123123', '123123', 123123, 123123, 123123, 123, 123123, 12312, 23123, 123213, 21312, 312312, 3123123, '2024-02-02 22:22:00', '2025-02-02 22:22:00', 222.00, '12312', '12312', '3123', '12312', '3123', '12312', '3123123', '11231', 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, '2025-02-12 13:16:35');
 INSERT INTO `demands` VALUES (2, '1341564641', '13156161', '1615561', 111, 11, 111, 11, 0, 0, 0, 0, 0, 0, 0, '2025-02-12 00:00:00', '2025-02-12 00:00:00', NULL, '', 'https://1231.com', '', '', '', '', '', '1231', 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, '2025-02-13 15:24:38');
-INSERT INTO `demands` VALUES (3, '16160561606', '1561351', '156165165', 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 1, 1, 1, 1, 3, 1, 2, 2, 2, 2, 2, '2025-02-13 17:08:19');
-INSERT INTO `demands` VALUES (4, '16160561606', '1561351', '156165165156165165', 111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 1, 2, 2, 2, 2, 1, 2, 3, 2, 1, 1, '2025-02-13 18:49:21');
+INSERT INTO `demands` VALUES (3, '16160561606', '1561351', '156165165', 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 2, 1, 1, 1, 3, 1, 2, 2, 2, 2, 2, '2025-02-14 14:46:31');
+INSERT INTO `demands` VALUES (4, '16160561606', '1561351', '156165165156165165', 111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 1, 2, 2, 2, 2, 1, 2, 3, 2, 1, 1, '2025-02-14 15:10:20');
 INSERT INTO `demands` VALUES (5, '12312312312', '3212312', '312312312', 1111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, '2025-02-13 18:51:51');
+INSERT INTO `demands` VALUES (6, '16354156', '16516', '1615616', 12312234, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '12312', '312312', NULL, NULL, NULL, NULL, NULL, '123123', 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, '2025-02-19 15:06:20');
+INSERT INTO `demands` VALUES (7, '234234234', '324', '234', 3, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, '', 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, '2025-02-25 19:30:32');
 
 -- ----------------------------
 -- Table structure for import_history
@@ -406,7 +415,7 @@ CREATE TABLE `platforms`  (
   `platform_id` int(11) NOT NULL AUTO_INCREMENT,
   `platform_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`platform_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of platforms
@@ -423,7 +432,7 @@ CREATE TABLE `product_models`  (
   `model_id` int(11) NOT NULL AUTO_INCREMENT,
   `model_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`model_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of product_models
@@ -466,12 +475,13 @@ CREATE TABLE `refund_logs`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `order_id`(`order_id`) USING BTREE,
   CONSTRAINT `refund_logs_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `refund_orders` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '返款日志表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '返款日志表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of refund_logs
 -- ----------------------------
 INSERT INTO `refund_logs` VALUES (1, 1, 'payment', 'pending', 'completed', 'system', '创建返款支付记录', '2025-02-12 18:11:25');
+INSERT INTO `refund_logs` VALUES (2, 2, 'payment', 'pending', 'completed', 'system', '创建返款支付记录', '2025-02-14 12:15:11');
 
 -- ----------------------------
 -- Table structure for refund_orders
@@ -507,12 +517,13 @@ CREATE TABLE `refund_orders`  (
   INDEX `detail_id`(`detail_id`) USING BTREE,
   CONSTRAINT `refund_orders_ibfk_1` FOREIGN KEY (`demand_id`) REFERENCES `demands` (`demand_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `refund_orders_ibfk_2` FOREIGN KEY (`detail_id`) REFERENCES `demand_details` (`detail_id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '返款订单表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '返款订单表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of refund_orders
 -- ----------------------------
 INSERT INTO `refund_orders` VALUES (1, 2, 4, '1341564641', '13156161', '1615561', NULL, '123123123111', '2025-02-12 18:05:44', 1100.00, 'USD', NULL, 'joint', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'completed', '2025-02-12 18:05:44', '2025-02-12 18:11:25');
+INSERT INTO `refund_orders` VALUES (2, 1, 2, '1231231231', '23123123', '123123', NULL, '123123123123', '2025-02-14 12:15:11', 12000.00, 'USD', NULL, 'joint', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'completed', '2025-02-14 12:15:11', '2025-02-14 12:15:11');
 
 -- ----------------------------
 -- Table structure for refund_payments
@@ -542,12 +553,13 @@ CREATE TABLE `refund_payments`  (
   INDEX `detail_id`(`detail_id`) USING BTREE,
   CONSTRAINT `refund_payments_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `refund_orders` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `refund_payments_ibfk_2` FOREIGN KEY (`detail_id`) REFERENCES `demand_details` (`detail_id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '返款支付表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '返款支付表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of refund_payments
 -- ----------------------------
 INSERT INTO `refund_payments` VALUES (1, 1, 4, '15615@063.com', 1100.00, 1100.00, 'USD', 0.00, NULL, 0.00, 'PayPal', '1316', '2025-02-12 18:10:41', '/uploads/74e1e9b7-bf24-4bf3-a142-e13d825b4078_FC3EEFA6-14D8-4afb-B862-328CF5694D76.png', '', 'pending', '2025-02-12 18:11:25', '2025-02-12 18:11:25');
+INSERT INTO `refund_payments` VALUES (2, 2, 2, '2131@163.com', 12000.00, 12200.00, 'USD', 0.00, NULL, 0.00, '银行卡', '123123', '2025-02-14 12:15:06', '/uploads/20250214121510_Untitled_1.png', '', 'pending', '2025-02-14 12:15:11', '2025-02-14 12:15:11');
 
 -- ----------------------------
 -- Table structure for refund_reviews
@@ -599,7 +611,7 @@ CREATE TABLE `stores`  (
   `store_id` int(11) NOT NULL AUTO_INCREMENT,
   `store_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`store_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of stores

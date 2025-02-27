@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import * as VueRouter from 'vue-router'
+import request from '@/utils/request'
 
 // 定义路由配置
 const routes: RouteRecordRaw[] = [
@@ -15,7 +16,18 @@ const routes: RouteRecordRaw[] = [
         path: 'demands',
         name: 'Demands',
         component: () => import('../views/demands/index.vue'),
-        meta: { title: '需求管理' }
+        meta: { title: '需求管理' },
+        beforeEnter: (to, from, next) => {
+          request.get('/demands', { params: { page: 1, size: 20, keyword: '', status: '' } })
+            .then(response => {
+              // 处理响应
+              next()
+            })
+            .catch(error => {
+              // 处理错误
+              next()
+            })
+        }
       },
       {
         path: 'demands/create',

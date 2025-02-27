@@ -212,6 +212,20 @@
         </el-table>
       </el-card>
     </div>
+
+    <h2>订单信息</h2>
+    <ul>
+      <li v-for="order in orders" :key="order.order_id">
+        订单ID: {{ order.order_id }}, 中介ID: {{ order.agent_id }}
+      </li>
+    </ul>
+    <h2>绑定订单</h2>
+    <select v-model="selectedOrder">
+      <option v-for="order in unboundOrders" :key="order.order_id" :value="order.order_id">
+        订单ID: {{ order.order_id }}, 中介ID: {{ order.agent_id }}
+      </option>
+    </select>
+    <button @click="bindOrder">绑定订单</button>
   </div>
 </template>
 
@@ -223,6 +237,8 @@ import axios from 'axios'
 import { getDemandDetails } from '../../api/detail'
 import type { DemandDetail } from '../../types/detail'
 import { useDetailStore } from '../../stores/detail'
+import { demandApi } from '@/api/demand'
+import { orderApi } from '@/api/order'
 
 interface Demand {
   marketing_number: string
@@ -255,6 +271,9 @@ const loading = ref(false)
 const detailStore = useDetailStore()
 const baseUrl = import.meta.env.VITE_API_URL
 const demandId = computed(() => route.params.id)
+const orders = ref([])
+const unboundOrders = ref([])
+const selectedOrder = ref(null)
 
 const loadDemand = async () => {
   try {
@@ -407,7 +426,15 @@ const getPreviewList = (url: string | null) => {
 onMounted(() => {
   loadDemand()
   loadDetails()
+  orders.value = await orderApi.list(demandId.value)
+  unboundOrders.value = orders.value.filter(order => order.agent_id === null)
 })
+
+const bindOrder = async () => {
+  await orderApi.bindAgent(selectedOrder.value, demandId.value)
+  orders.value = await orderApi.list(demandId.value)
+  unboundOrders.value = orders.value.filter(order => order.agent_id === null)
+}
 </script>
 
 <style scoped>

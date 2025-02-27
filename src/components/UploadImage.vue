@@ -65,7 +65,7 @@ const emit = defineEmits<{
   (e: 'error', error: any): void
 }>()
 
-const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const baseUrl = import.meta.env.VITE_API_URL || 'http://192.168.1.20:5000'
 const headers = {
   Authorization: `Bearer ${localStorage.getItem('token')}`
 }

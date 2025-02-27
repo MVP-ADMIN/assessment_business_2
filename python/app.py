@@ -16,13 +16,13 @@ from PIL import Image
 from pathlib import Path
 from functools import wraps
 import time
-
 # 导入返款系统路由
 from routes import refund
 from routes.refund import refund_bp  # 导入蓝图
 
 app = Flask(__name__)
 port = 3000
+CORS(app)
 
 # # CORS 配置
 # cors_options = {
@@ -82,6 +82,7 @@ cors_options = {
 
 CORS(app, resources={
     r"/api/*": cors_options,
+    r"/api/options": cors_options,
     r"/basic-api/*": cors_options,
     r"/uploads/*": cors_options
 })
@@ -2704,6 +2705,7 @@ def pause_demand(id):
         
         return jsonify({
             'code': 0,
+
             'message': 'success'
         })
         
