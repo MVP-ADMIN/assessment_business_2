@@ -72,131 +72,6 @@
         </el-col>
       </el-row>
     </el-card>
-
-    <!-- 添加测评明细列表 -->
-    <div class="details-list">
-      <el-card v-loading="loading">
-        <template #header>
-          <div class="card-header">
-            <span>测评明细列表</span>
-            <el-button type="primary" @click="$router.push(`/demands/${demandId}/details/create`)">
-              新增明细
-            </el-button>
-          </div>
-        </template>
-        
-        <el-table :data="details" style="width: 100%" v-loading="loading">
-          <el-table-column prop="order_number" label="订单号" />
-          <el-table-column prop="order_amount" label="订单金额">
-            <template #default="{ row }">
-              ¥{{ row.order_amount.toFixed(2) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="order_time" label="下单时间" />
-          <el-table-column label="订单截图">
-            <template #default="{ row }">
-              <el-image 
-                v-if="row.order_screenshot"
-                :src="getPreviewUrl(row.order_screenshot)"
-                :preview-src-list="getPreviewList(row.order_screenshot)"
-                fit="cover"
-                style="width: 50px; height: 50px; cursor: pointer"
-                preview-teleported
-              >
-                <template #error>
-                  <div class="image-error">
-                    <el-icon><Picture /></el-icon>
-                  </div>
-                </template>
-              </el-image>
-            </template>
-          </el-table-column>
-          <el-table-column label="评价截图">
-            <template #default="{ row }">
-              <el-image 
-                v-if="row.review_screenshot"
-                :src="getPreviewUrl(row.review_screenshot)"
-                :preview-src-list="getPreviewList(row.review_screenshot)"
-                fit="cover"
-                style="width: 50px; height: 50px; cursor: pointer"
-                preview-teleported
-              >
-                <template #error>
-                  <div class="image-error">
-                    <el-icon><Picture /></el-icon>
-                  </div>
-                </template>
-              </el-image>
-            </template>
-          </el-table-column>
-          <el-table-column label="支付截图">
-            <template #default="{ row }">
-              <el-image 
-                v-if="row.payment_screenshot"
-                :src="getPreviewUrl(row.payment_screenshot)"
-                :preview-src-list="getPreviewList(row.payment_screenshot)"
-                fit="cover"
-                style="width: 50px; height: 50px; cursor: pointer"
-                preview-teleported
-              >
-                <template #error>
-                  <div class="image-error">
-                    <el-icon><Picture /></el-icon>
-                  </div>
-                </template>
-              </el-image>
-            </template>
-          </el-table-column>
-          <el-table-column prop="status" label="状态" width="100">
-            <template #default="{ row }">
-              <el-tag :type="getStatusType(row.status)">
-                {{ getStatusText(row.status) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="agent_name" label="中介" width="120">
-            <template #default="{ row }">
-              <template v-if="row.agent_id">
-                <el-tag size="small" type="success">
-                  {{ row.agent_name }}
-                </el-tag>
-              </template>
-              <template v-else>
-                <el-tag size="small" type="info">未分配</el-tag>
-              </template>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="240" fixed="right">
-            <template #default="{ row }">
-              <el-button 
-                type="primary" 
-                size="small" 
-                @click="$router.push(`/demands/${demandId}/details/${row.detail_id}/edit`)"
-              >
-                编辑
-              </el-button>
-              
-              <el-button 
-                type="danger" 
-                size="small" 
-                @click="deleteDetail(row.detail_id)"
-              >
-                删除
-              </el-button>
-              
-              <el-button 
-                type="success" 
-                size="small" 
-                @click="showAssignAgentDialog(row)"
-              >
-                分配中介
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-card>
-    </div>
-
     <!-- 添加中介和订单管理部分 -->
     <el-divider content-position="left">中介与订单管理</el-divider>
     
@@ -337,6 +212,130 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 添加测评明细列表 -->
+    <div class="details-list">
+      <el-card v-loading="loading">
+        <template #header>
+          <div class="card-header">
+            <span>测评明细列表</span>
+            <el-button type="primary" @click="$router.push(`/demands/${demandId}/details/create`)">
+              新增明细
+            </el-button>
+          </div>
+        </template>
+        
+        <el-table :data="details" style="width: 100%" v-loading="loading">
+          <el-table-column prop="order_number" label="订单号" />
+          <el-table-column prop="order_amount" label="订单金额">
+            <template #default="{ row }">
+              ¥{{ row.order_amount.toFixed(2) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="order_time" label="下单时间" />
+          <el-table-column label="订单截图">
+            <template #default="{ row }">
+              <el-image 
+                v-if="row.order_screenshot"
+                :src="getPreviewUrl(row.order_screenshot)"
+                :preview-src-list="getPreviewList(row.order_screenshot)"
+                fit="cover"
+                style="width: 50px; height: 50px; cursor: pointer"
+                preview-teleported
+              >
+                <template #error>
+                  <div class="image-error">
+                    <el-icon><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+            </template>
+          </el-table-column>
+          <el-table-column label="评价截图">
+            <template #default="{ row }">
+              <el-image 
+                v-if="row.review_screenshot"
+                :src="getPreviewUrl(row.review_screenshot)"
+                :preview-src-list="getPreviewList(row.review_screenshot)"
+                fit="cover"
+                style="width: 50px; height: 50px; cursor: pointer"
+                preview-teleported
+              >
+                <template #error>
+                  <div class="image-error">
+                    <el-icon><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+            </template>
+          </el-table-column>
+          <el-table-column label="支付截图">
+            <template #default="{ row }">
+              <el-image 
+                v-if="row.payment_screenshot"
+                :src="getPreviewUrl(row.payment_screenshot)"
+                :preview-src-list="getPreviewList(row.payment_screenshot)"
+                fit="cover"
+                style="width: 50px; height: 50px; cursor: pointer"
+                preview-teleported
+              >
+                <template #error>
+                  <div class="image-error">
+                    <el-icon><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+            </template>
+          </el-table-column>
+          <el-table-column prop="status" label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="getStatusType(row.status)">
+                {{ getStatusText(row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="agent_name" label="中介" width="120">
+            <template #default="{ row }">
+              <template v-if="row.agent_id">
+                <el-tag size="small" type="success">
+                  {{ row.agent_name }}
+                </el-tag>
+              </template>
+              <template v-else>
+                <el-tag size="small" type="info">未分配</el-tag>
+              </template>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="240" fixed="right">
+            <template #default="{ row }">
+              <el-button 
+                type="primary" 
+                size="small" 
+                @click="$router.push(`/demands/${demandId}/details/${row.detail_id}/edit`)"
+              >
+                编辑
+              </el-button>
+              
+              <el-button 
+                type="danger" 
+                size="small" 
+                @click="deleteDetail(row.detail_id)"
+              >
+                删除
+              </el-button>
+              
+              <el-button 
+                type="success" 
+                size="small" 
+                @click="showAssignAgentDialog(row)"
+              >
+                分配中介
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+    </div>
   </div>
 </template>
 
